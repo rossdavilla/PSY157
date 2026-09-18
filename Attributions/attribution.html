@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Attribution Theory Interactive</title>
+<style>
+  :root {
+    --bg1: #6ee7b7;
+    --bg2: #60a5fa;
+    --ink: #111827;
+    --muted: #4b5563;
+    --card: #ffffff;
+    --shadow: 0 12px 28px rgba(0, 0, 0, 0.16);
+    --accent: #f59e0b;
+    --accentHover: #d97706;
+    --good: #065f46;
+    --bad: #7c2d12;
+    --info: #e0f2fe;
+    --soft: rgba(17, 24, 39, 0.06);
+  }
+
+  body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    background: linear-gradient(135deg, var(--bg1), var(--bg2));
+    color: var(--ink);
+  }
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 28px;
+  }
+
+  h1 {
+    margin: 0 0 14px 0;
+    font-size: 32px;
+  }
+
+  .subhead {
+    margin: 0 0 22px 0;
+    color: var(--muted);
+    font-size: 16px;
+    line-height: 1.4;
+  }
+
+  .card {
+    background: var(--card);
+    padding: 22px;
+    border-radius: 20px;
+    margin-bottom: 22px;
+    box-shadow: var(--shadow);
+  }
+
+  h2 {
+    margin: 0 0 10px 0;
+    font-size: 22px;
+  }
+
+  p {
+    line-height: 1.5;
+    margin: 10px 0;
+  }
+
+  button {
+    background: var(--accent);
+    border: none;
+    padding: 10px 18px;
+    border-radius: 12px;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 12px;
+    color: #111827;
+    font-weight: 800;
+  }
+
+  button:hover {
+    background: var(--accentHover);
+  }
+
+  button.secondary {
+    background: rgba(17, 24, 39, 0.08);
+  }
+
+  button.secondary:hover {
+    background: rgba(17, 24, 39, 0.14);
+  }
+
+  .feedback {
+    margin-top: 12px;
+    border-radius: 14px;
+    padding: 12px 14px;
+    background: rgba(17, 24, 39, 0.04);
+  }
+
+  .feedback.correct {
+    color: var(--good);
+    background: rgba(6, 95, 70, 0.08);
+  }
+
+  .feedback.incorrect {
+    color: var(--bad);
+    background: rgba(124, 45, 18, 0.08);
+  }
+
+  .hidden { display: none; }
+
+  .result-box {
+    margin-top: 15px;
+    padding: 15px;
+    border-radius: 16px;
+    background: var(--info);
+    border: 1px solid rgba(2, 132, 199, 0.2);
+  }
+
+  .pillRow {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+  }
+
+  .pill {
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: var(--soft);
+    font-size: 13px;
+    font-weight: 800;
+  }
+
+  /* Vertical button layout */
+  .verticalChoices {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 14px;
+  }
+
+  .segmented {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .segBtn {
+    appearance: none;
+    border: 2px solid rgba(17, 24, 39, 0.14);
+    background: rgba(17, 24, 39, 0.04);
+    padding: 16px;
+    border-radius: 14px;
+    font-size: 16px;
+    font-weight: 900;
+    cursor: pointer;
+    color: var(--ink);
+  }
+
+  .segBtn:active { transform: translateY(1px); }
+
+  .segBtn.selected {
+    border-color: rgba(245, 158, 11, 0.95);
+    background: rgba(245, 158, 11, 0.22);
+  }
+
+  .note {
+    color: var(--muted);
+    font-size: 14px;
+    margin: 0;
+  }
+
+  .scenarioImg {
+    width: 50vw;
+    border: 3px solid #000;
+    box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.35);
+    border-radius: 10px;
+    display: block;
+    margin: 10px auto 24px auto;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    background: #fff;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Attribution Theory Interactive Activity</h1>
+  <p class="subhead">
+    For each scenario, classify the cause as <strong>internal vs. external</strong>, <strong>stable vs. unstable</strong>, and <strong>controllable vs. uncontrollable</strong>.
+  </p>
+
+  <div id="testSection">
+
+    <div class="card">
+      <h2>Scenario 1</h2>
+      <img class="scenarioImg" src="images/Showing up Late to class.png" alt="Showing up late to class" />
+      <p>
+        Marcus has arrived 20-30 minutes late to his 9:00 a.m. class nearly every week. He often walks in holding an energy drink and disheveled, as if he just rolled out of bed. He lives five minutes from campus. His friends notice that he routinely posts gaming clips on social media around 1:00-2:00 a.m. When friends suggest going to bed earlier, he shrugs and says he "just isn't a morning person."
+        <br><br>
+        <strong>Why does Marcus come to class late?</strong>
+      </p>
+
+      <div class="verticalChoices">
+        <div class="segmented" data-group="q1_locus" data-selected="">
+          <button type="button" class="segBtn" data-value="internal">Internal</button>
+          <button type="button" class="segBtn" data-value="external">External</button>
+        </div>
+
+        <div class="segmented" data-group="q1_stable" data-selected="">
+          <button type="button" class="segBtn" data-value="stable">Stable</button>
+          <button type="button" class="segBtn" data-value="unstable">Unstable</button>
+        </div>
+
+        <div class="segmented" data-group="q1_control" data-selected="">
+          <button type="button" class="segBtn" data-value="controllable">Controllable</button>
+          <button type="button" class="segBtn" data-value="uncontrollable">Uncontrollable</button>
+        </div>
+      </div>
+
+      <button type="button" onclick="checkQ1()">Check Answer</button>
+      <div id="feedback1" class="feedback" aria-live="polite"></div>
+    </div>
+
+    <div class="card">
+      <h2>Scenario 2</h2>
+      <img class="scenarioImg" src="images/Submitting Assignment Late.png" alt="Submitting assignment late" />
+      <p>
+        Aisha fails to submit a major assignment for the first time all semester. She has perviously earned strong scores, participates regularly, and is known among her groupmates for being organized. On the afternoon the assignment was due, her apartment building experienced a sudden power outage after a nearby transformer explosion. With no electricity, her Wi-Fi router went down and she could not charge her laptop (which was already at 0%). She had finished the assignment earlier, but the only copy was on her computer and the submission portal required an online upload.
+        <br><br>
+        <strong>Why did Aisha not submit her assignment on time?</strong>
+      </p>
+
+      <div class="verticalChoices">
+        <div class="segmented" data-group="q2_locus" data-selected="">
+          <button type="button" class="segBtn" data-value="internal">Internal</button>
+          <button type="button" class="segBtn" data-value="external">External</button>
+        </div>
+        <div class="segmented" data-group="q2_stable" data-selected="">
+          <button type="button" class="segBtn" data-value="stable">Stable</button>
+          <button type="button" class="segBtn" data-value="unstable">Unstable</button>
+        </div>
+        <div class="segmented" data-group="q2_control" data-selected="">
+          <button type="button" class="segBtn" data-value="controllable">Controllable</button>
+          <button type="button" class="segBtn" data-value="uncontrollable">Uncontrollable</button>
+        </div>
+      </div>
+
+      <button type="button" onclick="checkQ2()">Check Answer</button>
+      <div id="feedback2" class="feedback" aria-live="polite"></div>
+    </div>
+
+    <div class="card">
+      <h2>Scenario 3</h2>
+      <img class="scenarioImg" src="images/Late to Presentation.png" alt="Late to presentation" />
+      <p>
+        Jordan misses a scheduled group presentation in class. This is unusual for him, as he usually shows up on time or even early. However, that morning, the campus parking lot closest to the classroom was unexpectedly closed due to emergency tree removal after a windstorm the night before. As a result, Jordan had to park much farther away than usual and arrived on campus later than planned. Instead of emailing the group while walking to class, Jordan stopped to get coffee and scroll through messages, assuming the group could start without them.
+        <br><br>
+        <strong>Why did Jordan miss the group presentation?</strong>
+      </p>
+
+      <div class="verticalChoices">
+        <div class="segmented" data-group="q3_locus" data-selected="">
+          <button type="button" class="segBtn" data-value="internal">Internal</button>
+          <button type="button" class="segBtn" data-value="external">External</button>
+        </div>
+        <div class="segmented" data-group="q3_stable" data-selected="">
+          <button type="button" class="segBtn" data-value="stable">Stable</button>
+          <button type="button" class="segBtn" data-value="unstable">Unstable</button>
+        </div>
+        <div class="segmented" data-group="q3_control" data-selected="">
+          <button type="button" class="segBtn" data-value="controllable">Controllable</button>
+          <button type="button" class="segBtn" data-value="uncontrollable">Uncontrollable</button>
+        </div>
+      </div>
+
+      <button type="button" onclick="checkQ3()">Check Answer</button>
+      <div id="feedback3" class="feedback" aria-live="polite"></div>
+    </div>
+
+    <button type="button" onclick="showCreateSection()">Create a Scenario</button>
+  </div>
+
+  <div id="createSection" class="hidden">
+    <div class="card" id="createIntro" style="display:none;">
+      <p class="note">
+        For the "Create a Scenario" section, make a choice on each dimension to generate a fuller story that matches your attribution choices.
+      </p>
+    </div>
+
+    <div class="card">
+      <h2>Coffee Shop Scenario</h2>
+      <img class="scenarioImg" src="images/Cutting in line at Coffee Shop.png" alt="Cutting in line at a coffee shop" />
+      <p>You are waiting in line at a busy coffee shop. A person walks in and stands at the counter as if they are next.</p>
+
+      <div class="verticalChoices">
+        <div class="segmented" data-group="coffee_locus" data-selected="">
+          <button type="button" class="segBtn" data-value="internal">Internal</button>
+          <button type="button" class="segBtn" data-value="external">External</button>
+        </div>
+        <div class="segmented" data-group="coffee_stable" data-selected="">
+          <button type="button" class="segBtn" data-value="stable">Stable</button>
+          <button type="button" class="segBtn" data-value="unstable">Unstable</button>
+        </div>
+        <div class="segmented" data-group="coffee_control" data-selected="">
+          <button type="button" class="segBtn" data-value="controllable">Controllable</button>
+          <button type="button" class="segBtn" data-value="uncontrollable">Uncontrollable</button>
+        </div>
+      </div>
+
+      <button type="button" onclick="generateCoffee()">Reveal Scenario</button>
+      <div id="coffee_result" class="result-box hidden" aria-live="polite"></div>
+    </div>
+
+    <div class="card">
+      <h2>Train Scenario</h2>
+      <img class="scenarioImg" src="images/Talking Loudly on Train.png" alt="Talking loudly on a train" />
+      <p>You are riding a crowded train. A person nearby is speaking loudly on their phone, and several passengers glance over with visible annoyance.</p>
+
+      <div class="verticalChoices">
+        <div class="segmented" data-group="train_locus" data-selected="">
+          <button type="button" class="segBtn" data-value="internal">Internal</button>
+          <button type="button" class="segBtn" data-value="external">External</button>
+        </div>
+        <div class="segmented" data-group="train_stable" data-selected="">
+          <button type="button" class="segBtn" data-value="stable">Stable</button>
+          <button type="button" class="segBtn" data-value="unstable">Unstable</button>
+        </div>
+        <div class="segmented" data-group="train_control" data-selected="">
+          <button type="button" class="segBtn" data-value="controllable">Controllable</button>
+          <button type="button" class="segBtn" data-value="uncontrollable">Uncontrollable</button>
+        </div>
+      </div>
+
+      <button type="button" onclick="generateTrain()">Reveal Scenario</button>
+      <div id="train_result" class="result-box hidden" aria-live="polite"></div>
+    </div>
+
+    <button type="button" class="secondary" onclick="scrollToTop()">Back to Top</button>
+  </div>
+</div>
+
+<script>
+  // Segmented controls
+  function getSegSelected(groupName) {
+    const el = document.querySelector(".segmented[data-group='" + groupName + "']");
+    return el ? (el.getAttribute("data-selected") || "") : "";
+  }
+
+  function setSegSelected(groupName, value) {
+    const el = document.querySelector(".segmented[data-group='" + groupName + "']");
+    if (!el) return;
+    el.setAttribute("data-selected", value);
+    el.querySelectorAll(".segBtn").forEach(function (btn) {
+      btn.classList.toggle("selected", btn.getAttribute("data-value") === value);
+    });
+  }
+
+  function initSegmentedControls() {
+    document.querySelectorAll(".segmented").forEach(function (seg) {
+      const group = seg.getAttribute("data-group");
+      seg.querySelectorAll(".segBtn").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          setSegSelected(group, btn.getAttribute("data-value"));
+        });
+      });
+    });
+  }
+
+  // Quiz evaluation
+  function evaluate(qPrefix, correct, feedbackId, correctWhy, incorrectWhy) {
+    const locus = getSegSelected(qPrefix + "_locus");
+    const stable = getSegSelected(qPrefix + "_stable");
+    const control = getSegSelected(qPrefix + "_control");
+
+    const feedbackEl = document.getElementById(feedbackId);
+    feedbackEl.classList.remove("correct", "incorrect");
+
+    if (!locus || !stable || !control) {
+      feedbackEl.classList.add("incorrect");
+      feedbackEl.innerHTML = "<strong>Please answer all three dimensions.</strong>";
+      return;
+    }
+
+    const isCorrect = locus === correct.locus && stable === correct.stable && control === correct.control;
+
+    if (isCorrect) {
+      feedbackEl.classList.add("correct");
+      feedbackEl.innerHTML = "<strong>Correct.</strong><br><br>" + correctWhy;
+    } else {
+      feedbackEl.classList.add("incorrect");
+      feedbackEl.innerHTML =
+        "<strong>Not quite.</strong><br><br>" +
+        "You selected <strong>" + locus + "</strong>, <strong>" + stable + "</strong>, and <strong>" + control + "</strong>. " +
+        "The most defensible classification is <strong>" + correct.locus + "</strong>, <strong>" + correct.stable + "</strong>, and <strong>" + correct.control + "</strong>." +
+        "<br><br>" +
+        incorrectWhy;
+    }
+  }
+
+  function checkQ1() {
+    const correct = { locus: "internal", stable: "stable", control: "controllable" };
+    const correctWhy =
+      "The pattern is consistent across time (nearly every week), which signals a <strong>stable</strong> cause. The scenario emphasizes choices and preferences (late-night gaming, describing himself as 'not a morning person,' living close to campus), which point to an <strong>internal</strong> cause. Because he could realistically change the behavior (go to bed earlier, set alarms, plan ahead), the cause is best seen as <strong>controllable</strong>.";
+    const incorrectWhy =
+      "Look for cues about repetition and choice. The ongoing pattern suggests <strong>stable</strong>, and the description points toward an <strong>internal</strong> explanation rather than a one-off external barrier. Because he could plausibly take steps to change the behavior, it fits <strong>controllable</strong>.";
+
+    evaluate("q1", correct, "feedback1", correctWhy, incorrectWhy);
+  }
+
+  function checkQ2() {
+    const correct = { locus: "external", stable: "unstable", control: "uncontrollable" };
+    const correctWhy =
+      "The missed submission is linked to an unusual situational event (a transformer-related power outage), which is <strong>external</strong> to Aisha. It is described as a one-time disruption (and she has a history of strong performance), which points to an <strong>unstable</strong> cause rather than something enduring. In that moment she had no realistic way to upload or charge her device, so the cause is best categorized as <strong>uncontrollable</strong>.";
+    const incorrectWhy =
+      "Focus on the constraints described. The outage and loss of internet are situational (so <strong>external</strong>), and her established record makes this look like a rare disruption (so <strong>unstable</strong>). Because she could not access power or internet to submit, it is most defensible to treat the cause as <strong>uncontrollable</strong> in the moment.";
+
+    evaluate("q2", correct, "feedback2", correctWhy, incorrectWhy);
+  }
+
+  function checkQ3() {
+    const correct = { locus: "external", stable: "unstable", control: "controllable" };
+    const correctWhy =
+      "The parking lot closure is a situational factor outside Jordan's personality or character, making the cause <strong>external</strong>. It was due to a specific windstorm-related event, suggesting a one-time disruption, which makes it <strong>unstable</strong>. However, Jordan still had choices in how to respond (for example, contacting the group immediately instead of stopping for coffee), which makes the situation <strong>controllable</strong>.";
+    const incorrectWhy =
+      "Separate the obstacle from the response. The closed parking lot is <strong>external</strong> and likely <strong>unstable</strong>, but Jordan retained behavioral options (such as quickly notifying the group), which supports <strong>controllability</strong>.";
+
+    evaluate("q3", correct, "feedback3", correctWhy, incorrectWhy);
+  }
+
+  // Create section
+  function showCreateSection() {
+    const section = document.getElementById("createSection");
+    const intro = document.getElementById("createIntro");
+
+    section.classList.remove("hidden");
+    intro.style.display = "block";
+    section.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function scrollToTop() {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  // Create scenario generation
+  function triLabel(value) {
+    if (value === "internal" || value === "external") return value === "internal" ? "Internal" : "External";
+    if (value === "stable" || value === "unstable") return value === "stable" ? "Stable" : "Unstable";
+    if (value === "controllable" || value === "uncontrollable") return value === "controllable" ? "Controllable" : "Uncontrollable";
+    return "";
+  }
+
+  function triKeyFromChoices(locus, stable, control) {
+    return locus + "_" + stable + "_" + control;
+  }
+
+  window.coffeeParagraphs = {
+    external_unstable_uncontrollable:
+      "A staff member calls them forward because there was a brief mix-up: their mobile order was mistakenly placed at the register, and the barista is trying to quickly confirm the name before making the drink. The customer looks confused and keeps glancing back at the line, but follows the employee's instructions. From the outside it looks like cutting, but in context it is a one-time situation they did not initiate and could not fully control.",
+    external_unstable_controllable:
+      "There is a one-time situational trigger: they notice the barista waving at someone near the counter after confusion about whose drink is ready. Instead of checking in from the end of the line, they choose to step up and ask, hoping to resolve it quickly. The trigger is temporary and external, but the decision to bypass the line is still a choice.",
+    external_stable_uncontrollable:
+      "The coffee shop has an ongoing accommodation: customers with a documented mobility condition are directed to approach the counter rather than stand in a long line. This is not a one-off event, and the person follows the store's consistent policy. Their need for accommodation is external to their intentions in that moment and not something they can simply switch off.",
+    external_stable_controllable:
+      "This location has a consistently confusing line system (two registers, a pickup cluster, and unclear signage), and people regularly end up out of sequence. The environment reliably creates the problem, but the person still has some control over how they handle it (for example, asking where the line begins). In this instance, they choose to proceed without clarifying.",
+    internal_unstable_uncontrollable:
+      "They just received upsetting news and are visibly rattled: attention narrowed and self-control reduced. In that moment, they impulsively walk straight to the counter without fully tracking the line, then freeze when they notice others staring. The cause is a temporary internal state, and their self-regulation is genuinely compromised in the moment.",
+    internal_unstable_controllable:
+      "They are having a bad morning and feel impatient and frazzled, but they still know there is a line. They decide in the moment to step to the front and act as if they are next, telling themselves they cannot deal with waiting today. The cause is internal and temporary, and while it is understandable, it remains a controllable choice.",
+    internal_stable_uncontrollable:
+      "They consistently struggle with impulse control and social timing in crowded settings. Even when they intend to follow norms, they repeatedly find themselves stepping forward too quickly and only realizing afterward. This reflects an enduring internal constraint that is difficult for them to regulate in real time.",
+    internal_stable_controllable:
+      "They have a long-standing attitude that rules do not apply to them and regularly prioritize their convenience over shared norms. They see the line and still step forward, behaving as if their time is more valuable. The cause is internal, consistent across situations, and rooted in a controllable pattern of choices.",
+  };
+
+  window.trainParagraphs = {
+    external_unstable_uncontrollable:
+      "The train suddenly becomes much louder than usual due to a malfunctioning speaker announcement and crowd noise, and the caller cannot hear anything unless they raise their voice. They repeatedly say they cannot hear and lean toward the phone, speaking loudly just to maintain the connection. It is a one-time environmental disruption and not something they can meaningfully control in the moment.",
+    external_unstable_controllable:
+      "Reception keeps cutting in and out as the train moves underground, and the person keeps repeating themselves to be understood. They could end the call or lower their voice, but they choose to push through loudly because they want to finish quickly. The trigger is temporary and external, yet the decision to continue at that volume is still controllable.",
+    external_stable_uncontrollable:
+      "They have a chronic hearing-related limitation (or a voice-volume regulation issue) that consistently affects how loudly they speak, especially in noisy environments. Even when they try to adjust, their volume drifts upward without them noticing in real time. This is a stable external constraint that is not fully under their immediate control.",
+    external_stable_controllable:
+      "This train line is reliably noisy (metal screeching, frequent announcements, crowded cars), and it predictably pushes people to speak louder than they intend. The environment consistently creates the challenge, but the person still has options (like texting, moving cars, or pausing the call). They choose to keep talking at a high volume in this setting.",
+    internal_unstable_uncontrollable:
+      "They just got emotionally charged news and are struggling to regulate their volume: attention narrowed and arousal high. They begin speaking louder without realizing it and only notice after several passengers look over. The cause is a temporary internal state and their self-regulation is genuinely reduced in the moment.",
+    internal_unstable_controllable:
+      "They are irritated and venting, and they decide in the moment to say what they need to say even if it draws attention. They are aware they are being loud and keep going anyway. The cause is internal and temporary, but still within their control.",
+    internal_stable_uncontrollable:
+      "They consistently have difficulty monitoring their own volume in public and often do not notice how loud they are until someone reacts. Even with good intentions, this pattern repeats across contexts. This reflects a stable internal constraint that is difficult to regulate on the fly.",
+    internal_stable_controllable:
+      "They generally do not care about shared-space norms and habitually talk loudly in public as if others are not there. They notice the looks from nearby riders and continue without adjusting. The cause is internal, stable, and reflects a controllable pattern of behavior.",
+  };
+
+  function renderMissing(box, missing) {
+    box.classList.remove("hidden");
+    box.innerHTML =
+      "<div class='pillRow'><span class='pill'>Choose all three dimensions</span></div>" +
+      "<p>Please make a choice for: <strong>" + missing.join(", ") + "</strong>.</p>";
+  }
+
+  function renderGenerated(box, labels, paragraph) {
+    box.classList.remove("hidden");
+    box.innerHTML =
+      "<div class='pillRow'>" +
+      "<span class='pill'>" + labels.locus + "</span>" +
+      "<span class='pill'>" + labels.stable + "</span>" +
+      "<span class='pill'>" + labels.control + "</span>" +
+      "</div>" +
+      "<p>" + paragraph + "</p>";
+  }
+
+  function validateCreate(prefix) {
+    const locus = getSegSelected(prefix + "_locus");
+    const stable = getSegSelected(prefix + "_stable");
+    const control = getSegSelected(prefix + "_control");
+    const missing = [];
+    if (!locus) missing.push("internal/external");
+    if (!stable) missing.push("stable/unstable");
+    if (!control) missing.push("controllable/uncontrollable");
+    return { ok: missing.length === 0, missing: missing, locus: locus, stable: stable, control: control };
+  }
+
+  function generateCoffee() {
+    const v = validateCreate("coffee");
+    const box = document.getElementById("coffee_result");
+    if (!v.ok) {
+      renderMissing(box, v.missing);
+      return;
+    }
+
+    const key = triKeyFromChoices(v.locus, v.stable, v.control);
+    const paragraph = window.coffeeParagraphs[key] || "No paragraph found for this combination.";
+    renderGenerated(
+      box,
+      { locus: triLabel(v.locus), stable: triLabel(v.stable), control: triLabel(v.control) },
+      paragraph
+    );
+  }
+
+  function generateTrain() {
+    const v = validateCreate("train");
+    const box = document.getElementById("train_result");
+    if (!v.ok) {
+      renderMissing(box, v.missing);
+      return;
+    }
+
+    const key = triKeyFromChoices(v.locus, v.stable, v.control);
+    const paragraph = window.trainParagraphs[key] || "No paragraph found for this combination.";
+    renderGenerated(
+      box,
+      { locus: triLabel(v.locus), stable: triLabel(v.stable), control: triLabel(v.control) },
+      paragraph
+    );
+  }
+
+  // Make functions explicitly global for onclick handlers
+  window.checkQ1 = checkQ1;
+  window.checkQ2 = checkQ2;
+  window.checkQ3 = checkQ3;
+  window.showCreateSection = showCreateSection;
+  window.generateCoffee = generateCoffee;
+  window.generateTrain = generateTrain;
+  window.scrollToTop = scrollToTop;
+
+  // Tests
+  (function runTests() {
+    function assert(condition, message) {
+      if (!condition) throw new Error("Test failed: " + message);
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+      initSegmentedControls();
+
+      assert(typeof window.checkQ1 === "function", "checkQ1 should be defined");
+      assert(typeof window.checkQ2 === "function", "checkQ2 should be defined");
+      assert(typeof window.checkQ3 === "function", "checkQ3 should be defined");
+      assert(typeof window.generateCoffee === "function", "generateCoffee should be defined");
+      assert(typeof window.generateTrain === "function", "generateTrain should be defined");
+
+      const coffeeKeys = Object.keys(window.coffeeParagraphs || {});
+      const trainKeys = Object.keys(window.trainParagraphs || {});
+      assert(coffeeKeys.length === 8, "coffeeParagraphs should have 8 combinations");
+      assert(trainKeys.length === 8, "trainParagraphs should have 8 combinations");
+
+      // Key mapping sanity check
+      const k = triKeyFromChoices("external", "unstable", "uncontrollable");
+      assert(k === "external_unstable_uncontrollable", "triKeyFromChoices should build expected key");
+      assert(typeof window.coffeeParagraphs[k] === "string", "coffeeParagraphs should contain expected key");
+
+      // Evaluate missing selections should show prompt
+      const f1 = document.getElementById("feedback1");
+      f1.innerHTML = "";
+      checkQ1();
+      assert(f1.textContent.toLowerCase().indexOf("please answer") >= 0, "missing quiz selections should prompt");
+    });
+  })();
+
+  document.addEventListener("DOMContentLoaded", function () {
+    initSegmentedControls();
+  });
+</script>
+</body>
+</html>

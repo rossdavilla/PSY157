@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Attribution Theory Interactive</title>
+<style>
+  :root {
+    --bg1: #6ee7b7;
+    --bg2: #60a5fa;
+    --ink: #111827;
+    --muted: #4b5563;
+    --card: #ffffff;
+    --accent: #f59e0b;
+    --accentHover: #d97706;
+    --good: #065f46;
+    --goodBg: rgba(6, 95, 70, 0.10);
+    --bad: #7c2d12;
+    --badBg: rgba(124, 45, 18, 0.09);
+    --soft: rgba(17, 24, 39, 0.06);
+    --line: rgba(17, 24, 39, 0.12);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    height: 100%;
+    overflow: hidden;
+    font-family: Arial, sans-serif;
+    color: var(--ink);
+    background: linear-gradient(135deg, var(--bg1), var(--bg2));
+  }
+
+  /* Fixed 720x450 stage, scaled to fit whatever frame it's placed in */
+  #stage {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 720px;
+    height: 450px;
+    padding: 10px;
+    transform: translate(-50%, -50%);
+    transform-origin: center center;
+  }
+
+  .card {
+    height: 100%;
+    background: var(--card);
+    border-radius: 16px;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
+    padding: 14px 18px 12px;
+    overflow: hidden;
+  }
+
+  .screen { display: none; height: 100%; flex-direction: column; }
+  .screen.active { display: flex; }
+
+  /* Header */
+  .top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    height: 28px;
+    flex: none;
+  }
+
+  h1, h2 { margin: 0; outline: none; }
+  h2 { font-size: 19px; }
+
+  .progress { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 800; color: var(--muted); }
+  .dots { display: flex; gap: 5px; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--line); }
+  .dot.done { background: var(--bg2); }
+  .dot.now { background: var(--accent); }
+
+  /* Body */
+  .body {
+    flex: 1;
+    min-height: 0;
+    margin-top: 10px;
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: 18px;
+  }
+  .body.single { display: block; }
+
+  .scenarioImg {
+    width: 180px;
+    height: 180px;
+    object-fit: cover;
+    border: 3px solid #000;
+    border-radius: 10px;
+    box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.3);
+    background: #fff;
+    display: block;
+  }
+
+  .main { min-width: 0; display: flex; flex-direction: column; }
+
+  .story { font-size: 13.5px; line-height: 1.42; margin: 0; }
+  .question { font-size: 14px; font-weight: 800; margin: 8px 0 0; }
+  .kicker { font-size: 12px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; margin: 0 0 4px; }
+
+  /* Segmented choices */
+  .choices { display: flex; flex-direction: column; gap: 7px; margin-top: auto; padding-top: 10px; }
+  .seg { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .segBtn {
+    appearance: none;
+    border: 2px solid rgba(17, 24, 39, 0.14);
+    background: rgba(17, 24, 39, 0.04);
+    padding: 7px 10px;
+    border-radius: 11px;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 900;
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .segBtn:hover { background: rgba(17, 24, 39, 0.08); }
+  .segBtn:active { transform: translateY(1px); }
+  .segBtn.selected { border-color: rgba(245, 158, 11, 0.95); background: rgba(245, 158, 11, 0.22); }
+
+  /* Footer */
+  .foot {
+    flex: none;
+    height: 40px;
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .hint { font-size: 12.5px; color: var(--muted); }
+  .footBtns { display: flex; gap: 8px; margin-left: auto; }
+
+  .btn {
+    background: var(--accent);
+    border: none;
+    padding: 9px 18px;
+    border-radius: 12px;
+    font: inherit;
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .btn:hover { background: var(--accentHover); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; background: var(--accent); }
+  .btn.secondary { background: rgba(17, 24, 39, 0.08); }
+  .btn.secondary:hover { background: rgba(17, 24, 39, 0.14); }
+
+  button:focus-visible { outline: 3px solid var(--bg2); outline-offset: 2px; }
+
+  /* Intro */
+  .intro h1 { font-size: 28px; margin-top: 6px; }
+  .intro .lead { font-size: 15px; line-height: 1.45; color: var(--muted); margin: 8px 0 14px; }
+  .dims { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .dim { background: var(--soft); border-radius: 12px; padding: 10px 12px; }
+  .dim b { display: block; font-size: 14px; margin-bottom: 4px; }
+  .dim span { font-size: 12.5px; line-height: 1.4; color: var(--muted); }
+  .thumbs { display: flex; gap: 10px; margin-top: 14px; align-items: center; }
+  .thumbs img { width: 52px; height: 52px; border-radius: 8px; border: 2px solid #000; object-fit: cover; }
+  .thumbs p { margin: 0 0 0 4px; font-size: 13px; color: var(--muted); line-height: 1.4; }
+
+  /* Feedback */
+  .verdict { font-size: 16px; font-weight: 900; padding: 6px 12px; border-radius: 10px; margin: 0; }
+  .verdict.correct { color: var(--good); background: var(--goodBg); }
+  .verdict.incorrect { color: var(--bad); background: var(--badBg); }
+
+  table.compare { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 13px; }
+  .compare th { text-align: left; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); padding: 3px 8px; }
+  .compare td { padding: 4px 8px; border-top: 1px solid var(--line); font-weight: 700; }
+  .compare td.ok { color: var(--good); }
+  .compare td.no { color: var(--bad); }
+
+  .explain { font-size: 13px; line-height: 1.42; margin: 8px 0 0; }
+
+  /* Results */
+  .scoreRow { display: flex; align-items: baseline; gap: 14px; margin-bottom: 8px; }
+  .scoreBig { font-size: 30px; font-weight: 900; }
+  .scoreSub { font-size: 13.5px; color: var(--muted); }
+  .resRow {
+    display: grid;
+    grid-template-columns: 56px 1fr;
+    gap: 12px;
+    align-items: center;
+    padding: 8px 0;
+    border-top: 1px solid var(--line);
+  }
+  .resRow img { width: 56px; height: 56px; border-radius: 8px; border: 2px solid #000; object-fit: cover; }
+  .resName { font-size: 14px; font-weight: 900; margin: 0 0 5px; }
+  .resName .tag { font-size: 11.5px; font-weight: 800; padding: 2px 8px; border-radius: 999px; margin-left: 6px; vertical-align: 1px; }
+  .tag.correct { color: var(--good); background: var(--goodBg); }
+  .tag.incorrect { color: var(--bad); background: var(--badBg); }
+
+  .pillRow { display: flex; gap: 6px; flex-wrap: wrap; }
+  .pill { padding: 4px 10px; border-radius: 999px; background: var(--soft); font-size: 12.5px; font-weight: 800; }
+  .pill.ok { color: var(--good); background: var(--goodBg); }
+  .pill.no { color: var(--bad); background: var(--badBg); }
+
+  /* Create reveal */
+  .revealText { font-size: 13.5px; line-height: 1.45; margin: 10px 0 0; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="card" id="app"></div>
+</div>
+
+<script>
+  // ---------- Content ----------
+  var DIMS = [
+    { key: "locus",   options: ["internal", "external"],         name: "Locus" },
+    { key: "stable",  options: ["stable", "unstable"],           name: "Stability" },
+    { key: "control", options: ["controllable", "uncontrollable"], name: "Controllability" }
+  ];
+
+  var QUIZ = [
+    {
+      id: "q1",
+      title: "Scenario 1",
+      img: "images/small/Showing up Late to class.jpg",
+      alt: "Showing up late to class",
+      story: "Marcus has arrived 20-30 minutes late to his 9:00 a.m. class nearly every week. He often walks in holding an energy drink and disheveled, as if he just rolled out of bed. He lives five minutes from campus. His friends notice that he routinely posts gaming clips on social media around 1:00-2:00 a.m. When friends suggest going to bed earlier, he shrugs and says he \"just isn't a morning person.\"",
+      question: "Why does Marcus come to class late?",
+      correct: { locus: "internal", stable: "stable", control: "controllable" },
+      correctWhy: "The pattern is consistent across time (nearly every week), which signals a <strong>stable</strong> cause. The scenario emphasizes choices and preferences (late-night gaming, describing himself as 'not a morning person,' living close to campus), which point to an <strong>internal</strong> cause. Because he could realistically change the behavior (go to bed earlier, set alarms, plan ahead), the cause is best seen as <strong>controllable</strong>.",
+      incorrectWhy: "Look for cues about repetition and choice. The ongoing pattern suggests <strong>stable</strong>, and the description points toward an <strong>internal</strong> explanation rather than a one-off external barrier. Because he could plausibly take steps to change the behavior, it fits <strong>controllable</strong>."
+    },
+    {
+      id: "q2",
+      title: "Scenario 2",
+      img: "images/small/Submitting Assignment Late.jpg",
+      alt: "Submitting assignment late",
+      story: "Aisha fails to submit a major assignment for the first time all semester. She has previously earned strong scores, participates regularly, and is known among her groupmates for being organized. On the afternoon the assignment was due, her apartment building experienced a sudden power outage after a nearby transformer explosion. With no electricity, her Wi-Fi router went down and she could not charge her laptop (which was already at 0%). She had finished the assignment earlier, but the only copy was on her computer and the submission portal required an online upload.",
+      question: "Why did Aisha not submit her assignment on time?",
+      correct: { locus: "external", stable: "unstable", control: "uncontrollable" },
+      correctWhy: "The missed submission is linked to an unusual situational event (a transformer-related power outage), which is <strong>external</strong> to Aisha. It is described as a one-time disruption (and she has a history of strong performance), which points to an <strong>unstable</strong> cause rather than something enduring. In that moment she had no realistic way to upload or charge her device, so the cause is best categorized as <strong>uncontrollable</strong>.",
+      incorrectWhy: "Focus on the constraints described. The outage and loss of internet are situational (so <strong>external</strong>), and her established record makes this look like a rare disruption (so <strong>unstable</strong>). Because she could not access power or internet to submit, it is most defensible to treat the cause as <strong>uncontrollable</strong> in the moment."
+    },
+    {
+      id: "q3",
+      title: "Scenario 3",
+      img: "images/small/Late to Presentation.jpg",
+      alt: "Late to presentation",
+      story: "Jordan misses a scheduled group presentation in class. This is unusual for him, as he usually shows up on time or even early. However, that morning, the campus parking lot closest to the classroom was unexpectedly closed due to emergency tree removal after a windstorm the night before. As a result, Jordan had to park much farther away than usual and arrived on campus later than planned. Instead of emailing the group while walking to class, Jordan stopped to get coffee and scroll through messages, assuming the group could start without them.",
+      question: "Why did Jordan miss the group presentation?",
+      correct: { locus: "external", stable: "unstable", control: "controllable" },
+      correctWhy: "The parking lot closure is a situational factor outside Jordan's personality or character, making the cause <strong>external</strong>. It was due to a specific windstorm-related event, suggesting a one-time disruption, which makes it <strong>unstable</strong>. However, Jordan still had choices in how to respond (for example, contacting the group immediately instead of stopping for coffee), which makes the situation <strong>controllable</strong>.",
+      incorrectWhy: "Separate the obstacle from the response. The closed parking lot is <strong>external</strong> and likely <strong>unstable</strong>, but Jordan retained behavioral options (such as quickly notifying the group), which supports <strong>controllability</strong>."
+    }
+  ];
+
+  var CREATE = [
+    {
+      id: "coffee",
+      title: "Coffee Shop Scenario",
+      img: "images/small/Cutting in line at Coffee Shop.jpg",
+      alt: "Cutting in line at a coffee shop",
+      prompt: "You are waiting in line at a busy coffee shop. A person walks in and stands at the counter as if they are next.",
+      paragraphs: {
+        external_unstable_uncontrollable:
+          "A staff member calls them forward because there was a brief mix-up: their mobile order was mistakenly placed at the register, and the barista is trying to quickly confirm the name before making the drink. The customer looks confused and keeps glancing back at the line, but follows the employee's instructions. From the outside it looks like cutting, but in context it is a one-time situation they did not initiate and could not fully control.",
+        external_unstable_controllable:
+          "There is a one-time situational trigger: they notice the barista waving at someone near the counter after confusion about whose drink is ready. Instead of checking in from the end of the line, they choose to step up and ask, hoping to resolve it quickly. The trigger is temporary and external, but the decision to bypass the line is still a choice.",
+        external_stable_uncontrollable:
+          "The coffee shop has an ongoing accommodation: customers with a documented mobility condition are directed to approach the counter rather than stand in a long line. This is not a one-off event, and the person follows the store's consistent policy. Their need for accommodation is external to their intentions in that moment and not something they can simply switch off.",
+        external_stable_controllable:
+          "This location has a consistently confusing line system (two registers, a pickup cluster, and unclear signage), and people regularly end up out of sequence. The environment reliably creates the problem, but the person still has some control over how they handle it (for example, asking where the line begins). In this instance, they choose to proceed without clarifying.",
+        internal_unstable_uncontrollable:
+          "They just received upsetting news and are visibly rattled: attention narrowed and self-control reduced. In that moment, they impulsively walk straight to the counter without fully tracking the line, then freeze when they notice others staring. The cause is a temporary internal state, and their self-regulation is genuinely compromised in the moment.",
+        internal_unstable_controllable:
+          "They are having a bad morning and feel impatient and frazzled, but they still know there is a line. They decide in the moment to step to the front and act as if they are next, telling themselves they cannot deal with waiting today. The cause is internal and temporary, and while it is understandable, it remains a controllable choice.",
+        internal_stable_uncontrollable:
+          "They consistently struggle with impulse control and social timing in crowded settings. Even when they intend to follow norms, they repeatedly find themselves stepping forward too quickly and only realizing afterward. This reflects an enduring internal constraint that is difficult for them to regulate in real time.",
+        internal_stable_controllable:
+          "They have a long-standing attitude that rules do not apply to them and regularly prioritize their convenience over shared norms. They see the line and still step forward, behaving as if their time is more valuable. The cause is internal, consistent across situations, and rooted in a controllable pattern of choices."
+      }
+    },
+    {
+      id: "train",
+      title: "Train Scenario",
+      img: "images/small/Talking Loudly on Train.jpg",
+      alt: "Talking loudly on a train",
+      prompt: "You are riding a crowded train. A person nearby is speaking loudly on their phone, and several passengers glance over with visible annoyance.",
+      paragraphs: {
+        external_unstable_uncontrollable:
+          "The train suddenly becomes much louder than usual due to a malfunctioning speaker announcement and crowd noise, and the caller cannot hear anything unless they raise their voice. They repeatedly say they cannot hear and lean toward the phone, speaking loudly just to maintain the connection. It is a one-time environmental disruption and not something they can meaningfully control in the moment.",
+        external_unstable_controllable:
+          "Reception keeps cutting in and out as the train moves underground, and the person keeps repeating themselves to be understood. They could end the call or lower their voice, but they choose to push through loudly because they want to finish quickly. The trigger is temporary and external, yet the decision to continue at that volume is still controllable.",
+        external_stable_uncontrollable:
+          "They have a chronic hearing-related limitation (or a voice-volume regulation issue) that consistently affects how loudly they speak, especially in noisy environments. Even when they try to adjust, their volume drifts upward without them noticing in real time. This is a stable external constraint that is not fully under their immediate control.",
+        external_stable_controllable:
+          "This train line is reliably noisy (metal screeching, frequent announcements, crowded cars), and it predictably pushes people to speak louder than they intend. The environment consistently creates the challenge, but the person still has options (like texting, moving cars, or pausing the call). They choose to keep talking at a high volume in this setting.",
+        internal_unstable_uncontrollable:
+          "They just got emotionally charged news and are struggling to regulate their volume: attention narrowed and arousal high. They begin speaking louder without realizing it and only notice after several passengers look over. The cause is a temporary internal state and their self-regulation is genuinely reduced in the moment.",
+        internal_unstable_controllable:
+          "They are irritated and venting, and they decide in the moment to say what they need to say even if it draws attention. They are aware they are being loud and keep going anyway. The cause is internal and temporary, but still within their control.",
+        internal_stable_uncontrollable:
+          "They consistently have difficulty monitoring their own volume in public and often do not notice how loud they are until someone reacts. Even with good intentions, this pattern repeats across contexts. This reflects a stable internal constraint that is difficult to regulate on the fly.",
+        internal_stable_controllable:
+          "They generally do not care about shared-space norms and habitually talk loudly in public as if others are not there. They notice the looks from nearby riders and continue without adjusting. The cause is internal, stable, and reflects a controllable pattern of behavior."
+      }
+    }
+  ];
+
+  // ---------- State ----------
+  var state;
+  function resetState() {
+    state = { answers: {}, locked: {}, create: {}, revealed: {} };
+    QUIZ.forEach(function (q) { state.answers[q.id] = {}; });
+    CREATE.forEach(function (c) { state.create[c.id] = {}; });
+  }
+
+  // ---------- Helpers ----------
+  function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+  function esc(s) {
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+  function complete(sel) { return DIMS.every(function (d) { return !!sel[d.key]; }); }
+  function keyOf(sel) { return sel.locus + "_" + sel.stable + "_" + sel.control; }
+  function isCorrect(q) {
+    var a = state.answers[q.id];
+    return DIMS.every(function (d) { return a[d.key] === q.correct[d.key]; });
+  }
+
+  function progressHTML(label, total, index, doneThrough) {
+    var dots = "";
+    for (var i = 0; i < total; i++) {
+      var cls = i === index ? "now" : (i < doneThrough ? "done" : "");
+      dots += "<span class='dot " + cls + "'></span>";
+    }
+    return "<div class='progress'><span>" + label + "</span><span class='dots' aria-hidden='true'>" + dots + "</span></div>";
+  }
+
+  function choicesHTML(sel) {
+    return "<div class='choices'>" + DIMS.map(function (d) {
+      return "<div class='seg' role='group' aria-label='" + d.name + "' data-dim='" + d.key + "'>" +
+        d.options.map(function (v) {
+          var on = sel[d.key] === v;
+          return "<button type='button' class='segBtn" + (on ? " selected" : "") + "' data-v='" + v + "' aria-pressed='" + on + "'>" + cap(v) + "</button>";
+        }).join("") + "</div>";
+    }).join("") + "</div>";
+  }
+
+  function wireChoices(root, sel, onChange) {
+    root.querySelectorAll(".seg").forEach(function (seg) {
+      var dim = seg.getAttribute("data-dim");
+      seg.querySelectorAll(".segBtn").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          sel[dim] = btn.getAttribute("data-v");
+          seg.querySelectorAll(".segBtn").forEach(function (b) {
+            var on = b === btn;
+            b.classList.toggle("selected", on);
+            b.setAttribute("aria-pressed", on);
+          });
+          onChange();
+        });
+      });
+    });
+  }
+
+  // ---------- Screens ----------
+  var app = document.getElementById("app");
+
+  function render(html, after) {
+    app.innerHTML = "<section class='screen active'>" + html + "</section>";
+    if (after) after(app);
+    var h = app.querySelector("h1, h2");
+    if (h) { h.setAttribute("tabindex", "-1"); h.focus({ preventScroll: true }); }
+  }
+
+  function showIntro() {
+    render(
+      "<div class='body single intro'>" +
+        "<h1>Attribution Theory</h1>" +
+        "<p class='lead'>When we explain <em>why</em> someone did something, we sort the cause along three dimensions. " +
+        "For each scenario, decide which side of each dimension fits best.</p>" +
+        "<div class='dims'>" +
+          "<div class='dim'><b>Internal vs. External</b><span>Is the cause inside the person (effort, traits, choices) or in the situation?</span></div>" +
+          "<div class='dim'><b>Stable vs. Unstable</b><span>Is the cause lasting and likely to repeat, or temporary and one-time?</span></div>" +
+          "<div class='dim'><b>Controllable vs. Uncontrollable</b><span>Could the person realistically have changed the outcome?</span></div>" +
+        "</div>" +
+        "<div class='thumbs'>" +
+          QUIZ.concat(CREATE).map(function (s) { return "<img src='" + esc(s.img) + "' alt=''>"; }).join("") +
+          "<p><strong>3 scenarios</strong> to classify,<br>then <strong>2 scenarios</strong> to create.</p>" +
+        "</div>" +
+      "</div>" +
+      "<div class='foot'><span></span><div class='footBtns'><button type='button' class='btn' id='go'>Start &rarr;</button></div></div>",
+      function (root) {
+        root.querySelector("#go").addEventListener("click", function () { showQuestion(0); });
+      }
+    );
+  }
+
+  function showQuestion(i) {
+    var q = QUIZ[i];
+    var sel = state.answers[q.id];
+    render(
+      "<div class='top'><h2>" + q.title + "</h2>" + progressHTML("Scenario " + (i + 1) + " of " + QUIZ.length, QUIZ.length, i, i) + "</div>" +
+      "<div class='body'>" +
+        "<img class='scenarioImg' src='" + esc(q.img) + "' alt='" + esc(q.alt) + "'>" +
+        "<div class='main'>" +
+          "<p class='story'>" + esc(q.story) + "</p>" +
+          "<p class='question'>" + esc(q.question) + "</p>" +
+          choicesHTML(sel) +
+        "</div>" +
+      "</div>" +
+      "<div class='foot'><span class='hint' id='hint'></span><div class='footBtns'><button type='button' class='btn' id='check'>Check Answer</button></div></div>",
+      function (root) {
+        var check = root.querySelector("#check");
+        var hint = root.querySelector("#hint");
+        function update() {
+          var ok = complete(sel);
+          check.disabled = !ok;
+          hint.textContent = ok ? "" : "Choose one option in each row.";
+        }
+        wireChoices(root, sel, update);
+        update();
+        check.addEventListener("click", function () {
+          state.locked[q.id] = true;
+          showFeedback(i);
+        });
+      }
+    );
+  }
+
+  function showFeedback(i) {
+    var q = QUIZ[i];
+    var a = state.answers[q.id];
+    var right = isCorrect(q);
+    var last = i === QUIZ.length - 1;
+    var rows = DIMS.map(function (d) {
+      var ok = a[d.key] === q.correct[d.key];
+      return "<tr><td>" + d.name + "</td>" +
+        "<td class='" + (ok ? "ok" : "no") + "'>" + (ok ? "&#10003; " : "&#10007; ") + cap(a[d.key]) + "</td>" +
+        "<td>" + cap(q.correct[d.key]) + "</td></tr>";
+    }).join("");
+    render(
+      "<div class='top'><h2>" + q.title + ": Feedback</h2>" + progressHTML("Scenario " + (i + 1) + " of " + QUIZ.length, QUIZ.length, i, i) + "</div>" +
+      "<div class='body'>" +
+        "<img class='scenarioImg' src='" + esc(q.img) + "' alt='" + esc(q.alt) + "'>" +
+        "<div class='main' aria-live='polite'>" +
+          "<p class='verdict " + (right ? "correct" : "incorrect") + "'>" + (right ? "&#10003; Correct" : "Not quite") + "</p>" +
+          "<table class='compare'><thead><tr><th>Dimension</th><th>Your answer</th><th>Best answer</th></tr></thead><tbody>" + rows + "</tbody></table>" +
+          "<p class='explain'>" + (right ? q.correctWhy : q.incorrectWhy) + "</p>" +
+        "</div>" +
+      "</div>" +
+      "<div class='foot'><span></span><div class='footBtns'><button type='button' class='btn' id='next'>" + (last ? "See Results &rarr;" : "Next Scenario &rarr;") + "</button></div></div>",
+      function (root) {
+        root.querySelector("#next").addEventListener("click", function () {
+          if (last) showResults(); else showQuestion(i + 1);
+        });
+      }
+    );
+  }
+
+  function showResults() {
+    var scenariosRight = 0, dimsRight = 0;
+    var rows = QUIZ.map(function (q) {
+      var a = state.answers[q.id];
+      var right = isCorrect(q);
+      if (right) scenariosRight++;
+      var pills = DIMS.map(function (d) {
+        var ok = a[d.key] === q.correct[d.key];
+        if (ok) dimsRight++;
+        return ok
+          ? "<span class='pill ok'>&#10003; " + cap(a[d.key]) + "</span>"
+          : "<span class='pill no'>&#10007; " + cap(a[d.key]) + " &rarr; " + cap(q.correct[d.key]) + "</span>";
+      }).join("");
+      return "<div class='resRow'><img src='" + esc(q.img) + "' alt=''>" +
+        "<div><p class='resName'>" + q.title + ": " + esc(q.question) +
+        "<span class='tag " + (right ? "correct" : "incorrect") + "'>" + (right ? "Correct" : "Not quite") + "</span></p>" +
+        "<div class='pillRow'>" + pills + "</div></div></div>";
+    }).join("");
+
+    render(
+      "<div class='top'><h2>Your Results</h2>" + progressHTML("Complete", QUIZ.length, -1, QUIZ.length) + "</div>" +
+      "<div class='body single'>" +
+        "<div class='scoreRow'><span class='scoreBig'>" + scenariosRight + " / " + QUIZ.length + "</span>" +
+        "<span class='scoreSub'>scenarios fully correct &middot; " + dimsRight + " of " + (QUIZ.length * DIMS.length) + " dimensions correct</span></div>" +
+        rows +
+      "</div>" +
+      "<div class='foot'><div class='footBtns' style='margin-left:0'><button type='button' class='btn secondary' id='restart'>Restart</button></div>" +
+      "<div class='footBtns'><button type='button' class='btn' id='create'>Create a Scenario &rarr;</button></div></div>",
+      function (root) {
+        root.querySelector("#restart").addEventListener("click", function () { resetState(); showIntro(); });
+        root.querySelector("#create").addEventListener("click", function () { showCreate(0); });
+      }
+    );
+  }
+
+  function showCreate(i) {
+    var c = CREATE[i];
+    var sel = state.create[c.id];
+    var revealed = !!state.revealed[c.id];
+    var last = i === CREATE.length - 1;
+    var top = "<div class='top'><h2>" + c.title + "</h2>" + progressHTML("Create " + (i + 1) + " of " + CREATE.length, CREATE.length, i, i) + "</div>";
+    var img = "<img class='scenarioImg' src='" + esc(c.img) + "' alt='" + esc(c.alt) + "'>";
+
+    if (!revealed) {
+      render(
+        top +
+        "<div class='body'>" + img +
+          "<div class='main'>" +
+            "<p class='kicker'>Create a Scenario</p>" +
+            "<p class='story'>" + esc(c.prompt) + "</p>" +
+            "<p class='question'>Choose a cause on each dimension, then reveal a story that fits your choices.</p>" +
+            choicesHTML(sel) +
+          "</div>" +
+        "</div>" +
+        "<div class='foot'><div class='footBtns' style='margin-left:0'><button type='button' class='btn secondary' id='back'>&larr; " + (i === 0 ? "Results" : CREATE[i - 1].title.replace(" Scenario", "")) + "</button></div>" +
+        "<div class='footBtns'><span class='hint' id='hint' style='align-self:center'></span><button type='button' class='btn' id='reveal'>Reveal Scenario</button></div></div>",
+        function (root) {
+          var reveal = root.querySelector("#reveal");
+          var hint = root.querySelector("#hint");
+          function update() {
+            var ok = complete(sel);
+            reveal.disabled = !ok;
+            hint.textContent = ok ? "" : "Choose one option in each row.";
+          }
+          wireChoices(root, sel, update);
+          update();
+          reveal.addEventListener("click", function () { state.revealed[c.id] = true; showCreate(i); });
+          root.querySelector("#back").addEventListener("click", function () {
+            if (i === 0) showResults(); else showCreate(i - 1);
+          });
+        }
+      );
+      return;
+    }
+
+    var paragraph = c.paragraphs[keyOf(sel)] || "No paragraph found for this combination.";
+    render(
+      top +
+      "<div class='body'>" + img +
+        "<div class='main' aria-live='polite'>" +
+          "<p class='kicker'>Your scenario</p>" +
+          "<div class='pillRow'>" + DIMS.map(function (d) { return "<span class='pill'>" + cap(sel[d.key]) + "</span>"; }).join("") + "</div>" +
+          "<p class='revealText'>" + esc(paragraph) + "</p>" +
+        "</div>" +
+      "</div>" +
+      "<div class='foot'><div class='footBtns' style='margin-left:0'><button type='button' class='btn secondary' id='change'>&larr; Try Another Combination</button></div>" +
+      "<div class='footBtns'><button type='button' class='btn' id='next'>" + (last ? "Back to Results" : "Next: " + CREATE[i + 1].title + " &rarr;") + "</button></div></div>",
+      function (root) {
+        root.querySelector("#change").addEventListener("click", function () { state.revealed[c.id] = false; showCreate(i); });
+        root.querySelector("#next").addEventListener("click", function () {
+          if (last) showResults(); else showCreate(i + 1);
+        });
+      }
+    );
+  }
+
+  // ---------- Scale stage to fit the frame ----------
+  function fit() {
+    var s = Math.min(window.innerWidth / 720, window.innerHeight / 450);
+    document.getElementById("stage").style.transform = "translate(-50%, -50%) scale(" + s + ")";
+  }
+  window.addEventListener("resize", fit);
+
+  // Preload images so page changes don't flash
+  QUIZ.concat(CREATE).forEach(function (s) { var im = new Image(); im.src = s.img; });
+
+  resetState();
+  fit();
+  showIntro();
+</script>
+</body>
+</html>
