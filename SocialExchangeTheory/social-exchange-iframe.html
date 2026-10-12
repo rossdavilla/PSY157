@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Social Exchange Theory Explorer</title>
+<style>
+  :root {
+    --bg1: #5b82c0;
+    --bg2: #7b5ea7;
+    --ink: #2a2a2a;
+    --muted: #6b7280;
+    --brand: #3d6ba8;
+    --brandHover: #2f5890;
+    --panel: #f6f8fd;
+    --line: #e2e7f0;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    height: 100%;
+    overflow: hidden;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: var(--ink);
+    background: linear-gradient(145deg, var(--bg1), var(--bg2));
+  }
+
+  /* Fixed 720x450 stage, scaled to fit whatever frame it's placed in */
+  #stage {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 720px;
+    height: 450px;
+    padding: 10px;
+    transform: translate(-50%, -50%);
+    transform-origin: center center;
+  }
+
+  .card {
+    height: 100%;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
+    padding: 14px 18px 12px;
+    overflow: hidden;
+  }
+
+  .screen { display: none; height: 100%; flex-direction: column; }
+  .screen.active { display: flex; animation: slideIn 0.3s ease; }
+  .screen.active.back { animation-name: slideBack; }
+  @keyframes slideIn   { from { opacity: 0; transform: translateX(24px); }  to { opacity: 1; transform: none; } }
+  @keyframes slideBack { from { opacity: 0; transform: translateX(-24px); } to { opacity: 1; transform: none; } }
+
+  /* Header */
+  .top { display: flex; align-items: center; justify-content: space-between; height: 28px; flex: none; }
+  h1 { margin: 0; font-size: 19px; color: var(--brand); letter-spacing: -0.3px; }
+  .progress { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; color: var(--muted); }
+  .dots { display: flex; gap: 5px; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--line); }
+  .dot.now { background: var(--brand); }
+
+  /* Footer */
+  .foot { flex: none; height: 40px; margin-top: 10px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .hint { font-size: 12.5px; color: var(--muted); font-style: italic; }
+  .btn {
+    background: var(--brand); color: #fff; border: none; border-radius: 30px;
+    padding: 10px 26px; font: inherit; font-size: 14.5px; font-weight: 700; cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+  }
+  .btn:hover { background: var(--brandHover); }
+  .btn:active { transform: translateY(1px); }
+  .btn:disabled { background: #a0b4cc; cursor: default; transform: none; }
+  .btn.secondary { background: #fff; color: var(--brand); border: 2px solid var(--brand); padding: 8px 20px; }
+  .btn.secondary:hover { background: #eef3fb; }
+
+  /* ── Screen 1: choose levels ── */
+  .vars { flex: 1; min-height: 0; margin-top: 10px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .var { background: var(--panel); border-radius: 14px; padding: 10px 12px 12px; display: flex; flex-direction: column; align-items: center; text-align: center; }
+  .icon { width: 100%; height: 84px; display: flex; align-items: center; justify-content: center; flex: none; }
+  .icon img { width: 100%; height: 100%; object-fit: contain; }
+  .icon .emoji { font-size: 44px; line-height: 1; white-space: nowrap; }
+  .var h2 { margin: 6px 0 0; font-size: 15px; line-height: 1.2; color: #333; min-height: 36px; display: flex; align-items: center; }
+  .var .sub { font-size: 12.5px; color: var(--muted); margin-top: 1px; }
+  .opts { width: 100%; margin-top: auto; padding-top: 8px; display: flex; flex-direction: column; gap: 6px; }
+  .opt {
+    padding: 8px; border: 2px solid #d0d8e8; border-radius: 10px; background: #fff; color: #555;
+    font: inherit; font-size: 14.5px; font-weight: 700; cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.1s;
+  }
+  .opt:hover { border-color: #b4c0d6; }
+  .opt:active { transform: scale(0.97); }
+  .opt.sel-L { background: #fdecea; border-color: #e74c3c; color: #c0392b; }
+  .opt.sel-M { background: #fff8e1; border-color: #f39c12; color: #b7770d; }
+  .opt.sel-H { background: #e8f8ef; border-color: #27ae60; color: #1a7a44; }
+
+  /* ── Screen 2: results ── */
+  .results { flex: 1; min-height: 0; margin-top: 10px; display: grid; grid-template-columns: 190px 1fr; gap: 16px; }
+  .left { display: flex; flex-direction: column; gap: 10px; }
+  .scene {
+    width: 190px; height: 190px; border-radius: 14px; background: var(--panel); overflow: hidden;
+    display: flex; align-items: center; justify-content: center; flex: none;
+  }
+  .scene img { width: 100%; height: 100%; object-fit: cover; }
+  .scene .emoji { font-size: 58px; line-height: 1; white-space: nowrap; }
+  .picks { display: flex; flex-direction: column; gap: 5px; }
+  .pick { display: flex; justify-content: space-between; align-items: center; font-size: 12.5px; color: #555; font-weight: 600; }
+  .pill { padding: 1px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+  .pill.L { background: #fdecea; color: #c0392b; }
+  .pill.M { background: #fff8e1; color: #b7770d; }
+  .pill.H { background: #e8f8ef; color: #1a7a44; }
+
+  .right { min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+  .meters { background: var(--panel); border-radius: 14px; padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
+  .row { display: flex; align-items: center; gap: 12px; }
+  .name { width: 104px; flex: none; }
+  .name b { display: block; font-size: 14.5px; color: #333; }
+  .name span { font-size: 11.5px; color: var(--muted); }
+  .bar { flex: 1; height: 14px; background: #e5e8ef; border-radius: 7px; position: relative; overflow: hidden; }
+  .bar .mid { position: absolute; left: 50%; top: 0; width: 2px; height: 100%; background: #aaa; z-index: 1; }
+  .bar .fill { position: absolute; top: 0; height: 100%; border-radius: 7px; transition: left 0.35s ease, width 0.35s ease, background-color 0.35s ease; }
+  .badge { width: 84px; flex: none; text-align: center; padding: 3px 8px; border-radius: 20px; font-size: 12.5px; font-weight: 700; }
+
+  .story {
+    flex: 1; min-height: 0; overflow-y: auto;
+    border: 2px solid #f0c060; border-radius: 14px; background: linear-gradient(135deg, #fffdf0, #fff5f8);
+    padding: 12px 16px;
+  }
+  #story-text { margin: 0; font-size: 16px; line-height: 1.6; transition: opacity 0.2s; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="card">
+
+    <!-- ── Screen 1: choose levels ── -->
+    <section class="screen active" id="screen-choose">
+      <div class="top">
+        <h1>Social Exchange Theory</h1>
+        <div class="progress">Step 1 of 2 <div class="dots"><span class="dot now"></span><span class="dot"></span></div></div>
+      </div>
+
+      <div class="vars">
+        <div class="var">
+          <div class="icon" data-img="pics/small/outcomes.png" data-emoji="❤️💔"></div>
+          <h2>Outcomes</h2>
+          <div class="sub">(Goods − Costs)</div>
+          <div class="opts" data-group="outcomes">
+            <button class="opt" data-value="-2" title="The relationship is more costly than rewarding">Low</button>
+            <button class="opt" data-value="0"  title="Costs and rewards roughly balance out">Medium</button>
+            <button class="opt" data-value="2"  title="The relationship is deeply rewarding">High</button>
+          </div>
+        </div>
+        <div class="var">
+          <div class="icon" data-img="pics/small/cl.png" data-emoji="⚖️"></div>
+          <h2>Comparison Level (CL)</h2>
+          <div class="sub">(Expectations)</div>
+          <div class="opts" data-group="cl">
+            <button class="opt" data-value="-2" title="Easy to satisfy; almost anything is good enough">Low</button>
+            <button class="opt" data-value="0"  title="A typical, moderate standard">Medium</button>
+            <button class="opt" data-value="2"  title="Expects a great deal from a relationship">High</button>
+          </div>
+        </div>
+        <div class="var">
+          <div class="icon" data-img="pics/small/clalt.png" data-emoji="👀"></div>
+          <h2>Comparison Level of Alternatives (CL-ALT)</h2>
+          <div class="sub">(Expectations of Alternatives)</div>
+          <div class="opts" data-group="clalt">
+            <button class="opt" data-value="-2" title="Very few or no appealing alternatives exist">Low</button>
+            <button class="opt" data-value="0"  title="Some alternatives, but nothing exciting">Medium</button>
+            <button class="opt" data-value="2"  title="Many attractive alternatives are available">High</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="foot">
+        <span class="hint" id="choose-hint">Pick Low, Medium, or High for all three.</span>
+        <button class="btn" id="see-btn" disabled>See Results →</button>
+      </div>
+    </section>
+
+    <!-- ── Screen 2: results ── -->
+    <section class="screen" id="screen-results">
+      <div class="top">
+        <h1>Social Exchange Theory</h1>
+        <div class="progress">Step 2 of 2 <div class="dots"><span class="dot"></span><span class="dot now"></span></div></div>
+      </div>
+
+      <div class="results">
+        <div class="left">
+          <div class="scene" id="scene"></div>
+          <div class="picks">
+            <div class="pick">Outcomes <span class="pill" id="pill-outcomes"></span></div>
+            <div class="pick">CL <span class="pill" id="pill-cl"></span></div>
+            <div class="pick">CL-ALT <span class="pill" id="pill-clalt"></span></div>
+          </div>
+        </div>
+
+        <div class="right">
+          <div class="meters">
+            <div class="row">
+              <div class="name"><b>Satisfaction</b><span>Outcomes − CL</span></div>
+              <div class="bar"><div class="mid"></div><div class="fill" id="bar-sat"></div></div>
+              <div class="badge" id="badge-sat"></div>
+            </div>
+            <div class="row">
+              <div class="name"><b>Dependence</b><span>Outcomes − CL-ALT</span></div>
+              <div class="bar"><div class="mid"></div><div class="fill" id="bar-dep"></div></div>
+              <div class="badge" id="badge-dep"></div>
+            </div>
+          </div>
+          <div class="story"><p id="story-text"></p></div>
+        </div>
+      </div>
+
+      <div class="foot">
+        <button class="btn secondary" id="back-btn">↺ Adjust Choices</button>
+        <button class="btn" id="next-btn">New Example (1/3)</button>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script>
+// ── State ─────────────────────────────────────────────────────────────────
+const vals = { outcomes: null, cl: null, clalt: null };
+let exampleIdx = 0;
+
+// ── Examples: keyed by "Outcomes_CL_CLALT" (each L/M/H), 3 per combo ────
+const EXAMPLES = {
+
+'H_L_L': [
+  "Gabriella expected nothing from love after years of broken promises. Then Dante arrived with breakfast in bed and surprise weekend trips. Next to him, every other guy looks like a cardboard cutout. She's over-the-moon satisfied and utterly dependent — she'd be lost without him.",
+  "Priya just wanted someone who shows up. Kevin shows up with flowers and a playlist made just for her. She's looked around, and nobody else even comes close. Priya is deliriously satisfied and completely dependent on this relationship — she'd move in tomorrow.",
+  "After a string of emotionally unavailable men, Sofia's expectations hit rock bottom. Then Noah — thoughtful, affectionate, hilarious — blew them away. The alternatives are grim, and she knows it. Sofia is wildly satisfied and extremely dependent. This relationship is her whole world.",
+],
+
+'H_L_M': [
+  "Jade had been burned too many times to expect anything, so Marcus — caring, passionate, fun — was a total shock. Sure, there are other fish in the sea, but none compare. Jade is deeply satisfied and highly dependent. She's not looking anywhere else.",
+  "Leila's standards were at an all-time low, so when Carlos turned out brilliant and attentive, she laughed in disbelief. A few decent prospects exist, but Carlos makes them seem flat. Leila is soaring with satisfaction and strongly dependent. She's staying, gladly.",
+  "Tyler was the 'I don't need a relationship' type, so falling hard for Morgan caught her off guard. A couple of alternatives exist, but this feels special. Tyler is profoundly satisfied and highly dependent. Walking away would feel like the dumbest decision of her life.",
+],
+
+'H_L_H': [
+  "Zoe never dared hope for someone like Daniel. But her options are fantastic too — plenty of appealing people are interested. She stays because she wants to, not because she has to. Sky-high satisfaction, moderate dependence. She's in by free, joyful choice.",
+  "Nina used to settle, so Marco treating her beautifully was a revelation. She's also been asked out three times this month. She stays because Marco makes her feel something the others don't — but the door is open. Very satisfied, moderately dependent.",
+  "Emma thought love was just 'fine' until James redefined the word. Attractive alternatives are circling, but James has something they don't. Her satisfaction is immense; her dependence sits in the middle. She's here because she wants to be, and that makes it sweeter.",
+],
+
+'H_M_L': [
+  "Rachel expected a decent relationship and got a great one — Kevin is warm, funny, and committed. And the dating landscape around her? A barren wasteland. Rachel is very satisfied and completely dependent. She's not going anywhere, and she doesn't want to.",
+  "Ethan expected the usual — some good times, some friction. With Bianca he found real chemistry and real communication. There's nobody else he could turn to, and he doesn't care. Ethan is happily satisfied and deeply dependent. He'd be a fool to mess this up.",
+  "Serena thought 'decent' was the best she could do, but Marco is genuinely wonderful — kind and present. The alternatives are laughably bad, which makes her even more grateful. Serena is highly satisfied and completely dependent. She's leaning all the way in.",
+],
+
+'H_M_M': [
+  "Claudia hoped for a solid relationship, and Damian delivered something better: warmth and real joy. A few other guys are around, but none compare. Claudia is happy and feels a real sense of dependence. She's invested, content, and not looking to leave.",
+  "Marcus exceeded what Anya expected — funny, devoted, and emotionally intelligent. She has options and won't pretend otherwise, but what she has feels worth protecting. Anya is satisfied and fairly dependent on this relationship. She knows a good thing when she has it.",
+  "Tomás turned out more tender and interesting than Isabel expected. There are some potential alternatives, but they feel thin next to what she already has. Isabel is quite satisfied and feels a strong dependence on their bond. She's all in, and it feels right.",
+],
+
+'H_M_H': [
+  "Things with Ryan are good — better than Jade expected. But her options right now are genuinely excellent, too. Jade is satisfied, but her dependence is moderate. She's here because she wants to be, full stop, and that choice makes the whole thing feel electric.",
+  "David brings more tenderness and laughter than Elena expected. She also knows she has seriously appealing options. She stays because David is worth it, not because she has to. High satisfaction, moderate dependence — every day with him is a deliberate choice.",
+  "Malik exceeded Nadia's expectations in almost every way. But Nadia has options, and she knows it. She's not clinging; she's choosing. Her satisfaction is high, and her dependence sits at a comfortable middle. This relationship runs on desire, not desperation.",
+],
+
+'H_H_L': [
+  "Brittany has demanding taste, and Marcus delivers — just barely. She expected great, so great feels ordinary. Leaving isn't really an option; the alternatives are an embarrassment. Brittany is neutrally satisfied and profoundly dependent. She stays because she has to, not because she's swept away.",
+  "Julian is exactly what Veronica ordered: successful, attractive, emotionally available. But getting exactly what you expected brings no spark of surprise. And the alternatives are grim. Veronica is neutrally satisfied and deeply dependent. A golden cage is still a cage.",
+  "Hunter checks every box on Aisha's very long list, which feels more 'correct' than thrilling. No one better is out there, so leaving isn't realistic. Aisha is neutrally satisfied and highly dependent. She's staying, but wonders if her list left room for something that feels alive.",
+],
+
+'H_H_M': [
+  "Celeste wants the best, and Nathan gives her the best — no more, no less. She's neither swooning nor frustrated. A few other options exist, but nothing obviously better. Celeste is neutrally satisfied and fairly dependent. She stays with a quiet 'this is fine.'",
+  "Dominique demanded an impressive partner and got one, yet feels oddly unmoved — like a perfect meal when you're not hungry. A couple of alternatives exist, but nothing worth sprinting toward. Neutral satisfaction, fairly high dependence. She's staying, but waiting to feel something more.",
+  "Rodrigo is everything on Sofia's wishlist — cultured, ambitious, attentive — so why isn't she overjoyed? There are others she could see herself with, but she'd rather not gamble on the unknown. Sofia is neutrally satisfied and fairly dependent. She's still waiting for the butterflies.",
+],
+
+'H_H_H': [
+  "Andre clears every one of Camille's extremely high standards. But she's also surrounded by excellent options, and 'exactly right' doesn't feel like enough. Camille is neutrally satisfied and neutrally dependent. She's here today, but she's thinking hard about tomorrow.",
+  "Jordan is exactly what Kai expected — sophisticated, caring, attentive — and somehow that leaves her flat. With several compelling alternatives buzzing around, 'why not try something else?' gets louder each week. Neutral satisfaction, neutral dependence. This could go either way.",
+  "Lorenzo ticks every box on Valentina's long list, so she should be ecstatic. Instead she feels indifferent, especially with extraordinary alternatives she hasn't explored. Valentina has neutral satisfaction and neutral dependence. The relationship is hanging in the balance, and she knows it.",
+],
+
+'M_L_L': [
+  "Deja's expectations were practically underground, so when things with Chris turned out warm and steady, she was pleasantly surprised. The alternatives are dismal — no one worth switching to. Deja is happily satisfied and feels real dependence on this relationship. She's not just satisfied; she's grateful.",
+  "Maria never put much faith in romance. But Eduardo has been steady, kind, and more than she bargained for. Nobody better is on the horizon. Maria is satisfied in a solid, real way, and her dependence runs high. She found her person, even if she never expected to.",
+  "Aaron started dating Simone mostly to get his friends off his back. Turns out she's warm, perceptive, and fun to be around. With no alternatives calling, he's sticking around gladly. Aaron is genuinely satisfied and highly dependent. She changed his mind about love.",
+],
+
+'M_L_M': [
+  "Hannah set the bar at 'doesn't cancel plans,' and James cleared it easily — thoughtful and unexpectedly sweet. A couple of interesting prospects are around, and they're about as good. Hannah is happily satisfied and moderately dependent. She's choosing to stay, and it feels easy.",
+  "Tyler came in with barely any expectations, and Grace turned out better than 'fine.' Some alternatives around are about as appealing, but nothing pulls him away. Tyler is satisfied and moderately dependent — pretty content right where he is.",
+  "After her last mess of a relationship, Priya expected nothing. Kai is good to her in ways she'd stopped hoping for. She has some decent options, but she's not itching to explore them. Priya is satisfied and moderately dependent. She's here because it works, not because she's trapped.",
+],
+
+'M_L_H': [
+  "DeShawn figured relationships were overrated, so things with Nia being lovely caught him off guard. But his options have never looked better. He's satisfied with Nia, yet aware of his market value, which keeps his dependence low. DeShawn is happy but not locked in — for now.",
+  "Maya expected little and found something surprisingly warm. She's genuinely satisfied. But she's also surrounded by options that would make most heads spin. Maya is happy but has low dependence — staying is a daily choice, not a permanent decision.",
+  "Isabelle's expectations were low, and this relationship cleared them with ease. Extraordinary? No. Good? Yes. But attractive options keep pulling at her attention, and many look better. Her satisfaction is real, but her dependence is low. She's here today; ask again tomorrow.",
+],
+
+'M_M_L': [
+  "Nadia and Ben's relationship is fine — exactly what she expected: decent, comfortable, not electric. The bigger issue is there's nowhere else to go; her alternatives are grim. Nadia is neutrally satisfied and highly dependent. She stays mostly because the other options are worse.",
+  "Everything with Carlos is what Tomas predicted: steady, reliable, predictable. He meets the bar and nothing more. With no appealing alternatives, there's no exit ramp. Tomas is neutrally satisfied and highly dependent — committed to 'good enough,' which sometimes feels like plenty and sometimes doesn't.",
+  "Kylie's relationship with Drew is like a meal that's fine but forgettable. She expected comfortable and got comfortable. With no compelling alternatives, her dependence is high whether she likes it or not. Neutral satisfaction, high dependence. She's also quietly Googling 'signs your relationship lost its spark.'",
+],
+
+'M_M_M': [
+  "Lena and Jorge are average in the best and worst ways — no fireworks, no disasters. She expected this, got this, and her alternatives look about the same. Lena is neutrally satisfied and neutrally dependent. This relationship is a coin flip, and they both know it.",
+  "Evan's review of his relationship with Cassidy: comfortable. He expected comfortable and got it. His other options are about the same — nothing wild. Neutral satisfaction, neutral dependence. They might stay together for years or they might not, and nobody's devastated either way.",
+  "What Marco and Bianca have is exactly 'enough.' She expected enough, received enough, and her alternatives aren't any better or worse. Bianca is shrugging-emoji satisfied and half-committed. Not running for the exit, not clinging to the door — just right in the middle.",
+],
+
+'M_M_H': [
+  "Sam and Alex are fine together — no complaints, no confetti. But Sam is sitting on a gold mine of alternatives, and she knows it. She's not unhappy enough to act or happy enough to stop looking. Neutral satisfaction, low dependence. A quiet timer is running.",
+  "Things with Theo are exactly what Juno predicted: decent, livable, not thrilling. Meanwhile, her alternatives are stacking up nicely. She doesn't feel strongly enough to dig in or to leave — yet. Neutral satisfaction, low dependence. She's coasting, and the exit is clearly marked.",
+  "Rachel likes what she has with Derek — moderately. It's steady and forgettable. But the world is full of options that look pretty good from here. Rachel is neutrally satisfied and has low dependence. She'll stay for now, but she's already peeking over the fence.",
+],
+
+'M_H_L': [
+  "Elise wanted extraordinary. What she has with Ben is ordinary — not bad, but it stings when you had champagne dreams. And the alternatives are barely a step up from nothing. Low satisfaction, high dependence. She stays not because she wants to, but because leaving feels worse.",
+  "Victor expected a great love story and got a decent Tuesday. Things with Carmen are warm but uninspiring, and there's nowhere exciting to run to anyway. Victor has low satisfaction and high dependence. He's staying, while privately grieving the relationship he imagined.",
+  "Alicia dreamed of passion and got reliability. Felipe is steady and loyal, but nothing matches the spark she believes she deserves — and no better offer is waiting. Low satisfaction, high dependence. She's not happy, but she's not leaving. That quiet resignation might be the saddest outcome.",
+],
+
+'M_H_M': [
+  "Courtney expected magic, and what she has with Deon is… cable TV. Not terrible, not magical. Her alternatives are about as good as what she has. Low satisfaction, neutral dependence. She might stay; she might not. She's definitely Googling 'is the grass actually greener.'",
+  "Tasha aimed for the stars and landed on the moon — technically fine, but she can see Earth from here. Jaylen is decent, and a few alternatives are about as appealing. Low satisfaction, neutral dependence. She's in limbo, and getting persistently annoyed about it.",
+  "Holly hoped for big, bold romance. What she has with James is pleasant and quietly insufficient. With a few options starting to surface, she's asking hard questions. Low satisfaction, neutral dependence. She's probably about to start a 'maybe' folder on her phone.",
+],
+
+'M_H_H': [
+  "Destiny demands wit, spark, and adventure; what she has with Will is comfortable background noise. Worse, her alternatives are electric. She's disappointed and knows she doesn't need to be here. Low satisfaction, low dependence. Deep down, she knows staying is doing herself a disservice.",
+  "Serena's standards are legendary among her friends, and this relationship falls laughably short. Meanwhile, she has genuinely outstanding options. Low satisfaction, low dependence. This is a slow-motion breakup waiting to happen — she's one good dinner date away from walking out the door.",
+  "Grace wanted fireworks, depth, and an equal; Nathan barely registers as a spark. Her alternatives, on the other hand, are dazzling. Low satisfaction, low dependence — she's essentially free to leave. She's already composing the breakup text in her head.",
+],
+
+'L_L_L': [
+  "Marcus's expectations were rock-bottom: just don't make things worse. The relationship with Jade drains him in small ways, but he expected that. Nobody better is out there either. Marcus is neutrally satisfied and neutrally dependent. They might still be here in ten years, equally unmoved.",
+  "Carmen figured relationships were more trouble than they're worth, and things with Miguel are draining in predictable ways. But she set the bar at 'surviving,' and he cleared it. The alternatives are no better. Neutral satisfaction, neutral dependence. They'll stay together by sheer inertia.",
+  "Deja expected very little and got exactly that. She and Taylor drain each other in subtle ways, but she can't claim disappointment. Her alternatives are just as bleak. Neutral satisfaction, neutral dependence — low standards and low alternatives, two bleak forces creating stability.",
+],
+
+'L_L_M': [
+  "Lena expected a bad deal and got one — things with Daniel are draining and mostly joyless, exactly as predicted. Some alternatives look somewhat better. Neutral satisfaction (in the grimmest sense), low dependence. She could leave. She hasn't yet, but the clock is ticking.",
+  "Aaron's goal was to survive, not thrive, and his relationship confirmed those expectations. Now some better alternatives are appearing on his radar, and he's questioning why he's still here. Neutral satisfaction, low dependence. He's one interesting conversation away from reconsidering everything.",
+  "Veronica knew this wouldn't be great, and it isn't — costly and mediocre, just as she predicted. With some better options surfacing, she's at a crossroads. Neutral satisfaction, low dependence. She's holding on loosely — very, very loosely.",
+],
+
+'L_L_H': [
+  "Patrice expected this relationship to be draining, and it is — she's not shocked, just tired. She also has extraordinary options that could actually make her happy. Her satisfaction is neutral (her expectations were terrible), and her dependence is very low. She's one bold conversation from the exit.",
+  "Bianca knew this wouldn't be great, and it's been mostly a grind. Her expectations were so low she can't even claim disappointment. What she can claim is a phone full of better options. Neutral satisfaction, very low dependence. She is absolutely about to make a move.",
+  "Darius knew this would be hard, and he was right — it's costly in all the ways he predicted. No extra devastation, just steady fatigue. Meanwhile, glittering alternatives are calling his name. Neutral satisfaction, very low dependence. He's already halfway out the door in his mind.",
+],
+
+'L_M_L': [
+  "Sophia expected a decent relationship and got a taxing one — constant friction, emotional drain. She's disappointed in a slow, grinding way. The alternatives she can see are just as bad. Low satisfaction, neutral dependence. She stays because leaving doesn't look any better, not because staying feels right.",
+  "Isaiah expected something reasonable with Morgan and got something that costs him in nearly every way. He's not devastated — he's exhausted. His other options look no better. Low satisfaction, neutral dependence. He's not thriving; he's surviving, and he feels the difference every day.",
+  "Elena wanted something normal and got something draining — every interaction with Dante feels like thankless work. She can't see a better escape, which makes her quietly furious. Low satisfaction, neutral dependence. She's not in chains, but she's not free either, and she's starting to resent it.",
+],
+
+'L_M_M': [
+  "Candace expected something decent with James and got something exhausting. Small disappointments have stacked into a mountain, and now her alternatives look pretty good. Low satisfaction, low dependence. She's emotionally half-gone; the formal exit is basically a formality.",
+  "Tyler asked for a normal relationship and got a headache. Xavier is draining in big and small ways, and the alternatives feel very real and very tempting. Low satisfaction, low dependence. Tyler's private pros-and-cons list has Xavier losing on every line.",
+  "Remi expected love to be a net positive and learned it can run a deficit. Her relationship with Sam costs more than it gives, and other options could actually fill her up. Low satisfaction, low dependence. One good opportunity and she's gone.",
+],
+
+'L_M_H': [
+  "Vanessa wanted something nice with Adam and got something that chips away at her every day. Now her options look exceptional. Low satisfaction, very low dependence. Vanessa is not staying — she just hasn't announced it yet.",
+  "Renée expected a real partnership and got a slow emotional bleed — constant conflict, nothing clicking. To top it off, her alternatives are fantastic right now. Low satisfaction, very low dependence. She's mentally in the next chapter, done editing this rough draft.",
+  "What started with hope now just hurts. Alex expected more from Taylor, and Taylor delivered less. With extraordinary alternatives waving from across the room, Alex's dependence is very low. Low satisfaction, clear eyes, bags packed. She is done.",
+],
+
+'L_H_L': [
+  "Jordan had extraordinary standards, and Reese disappoints spectacularly — the relationship is draining and nowhere near what she deserves. The kicker? No one better is in sight. Very low satisfaction, neutral dependence. She stays not because she loves Reese, but because the alternative is a vacuum. She simmers.",
+  "Adriana waited years for someone who matched her sky-high standards, then settled for Lucas and called it 'realistic.' Now she knows it was just sad. Lucas is exhausting, and her alternatives are no better. Very low satisfaction, neutral dependence. She's stuck, and she knows it.",
+  "Everything Mia wanted — passion, depth, real communication — is missing with Trevor. The relationship drains her, and the exit leads to an equally barren landscape. Very low satisfaction, neutral dependence. She can't find a better option, and she can't be happy here. That's brutal.",
+],
+
+'L_H_M': [
+  "Tori had a long, beautiful list of what she needed. Drew checks none of it while draining her energy in creative ways. Some alternatives are surfacing, and they look like lifelines. Very low satisfaction, low dependence. She's going to jump ship — the only question is when.",
+  "Simone imagined a love that felt like a revelation; with Marcus it feels like a penalty. Better alternatives are emerging, and she's paying serious attention. Very low satisfaction, low dependence. Simone is unhappy, underserved, and finally admitting it out loud.",
+  "Jake's expectations were high and his outcomes are low, creating a very specific misery. A few interesting options have recently appeared, and they look very good. Very low satisfaction, low dependence. Jake is rethinking everything and can't remember what he liked about this relationship.",
+],
+
+'L_H_H': [
+  "Nadia spent years curating her standards, and her relationship with Cole is a disaster by comparison — draining and hollow. Meanwhile, her alternatives are a parade of exciting possibilities. Very low satisfaction, very low dependence. She doesn't just need to leave; she needed to leave yesterday.",
+  "Marcus's standards are high, and this relationship falls painfully short — it costs him constantly and delivers almost nothing. Genuinely excellent options are waiting just outside the door. Very low satisfaction, very low dependence. He's already rehearsing the breakup conversation in his head.",
+  "Priya built a vision of great love, and what she has with Derek is its photo negative — costly and diminishing. She's surrounded by better options. Very low satisfaction, very low dependence. This relationship is already over; someone just needs to say the words.",
+],
+
+};
+
+// ── Scene images: one per Satisfaction × Dependence level ────────────────
+// Files are pics/small/scene-sat-<level>-dep-<level>.jpg (level = high, neutral, low),
+// web-sized copies of the full-size PNGs in pics/.
+// Until a file exists, the emoji pair is shown instead.
+const SAT_EMOJI = { high: '😍', neutral: '😐', low: '😞' };
+const DEP_EMOJI = { high: '🔒', neutral: '⚖️', low: '🚪' };
+
+// Preload scene images so the results screen doesn't flash
+['high', 'neutral', 'low'].forEach(s => ['high', 'neutral', 'low'].forEach(d => {
+  new Image().src = `pics/small/scene-sat-${s}-dep-${d}.jpg`;
+}));
+
+// ── Helpers ───────────────────────────────────────────────────────────────
+const LEVEL_KEY  = { '-2': 'L', '0': 'M', '2': 'H' };
+const LEVEL_NAME = { L: 'Low', M: 'Medium', H: 'High' };
+
+function comboKey() {
+  return `${LEVEL_KEY[vals.outcomes]}_${LEVEL_KEY[vals.cl]}_${LEVEL_KEY[vals.clalt]}`;
+}
+
+function isReady() { return vals.outcomes !== null && vals.cl !== null && vals.clalt !== null; }
+
+function sceneLevel(v) { return v > 0 ? 'high' : v < 0 ? 'low' : 'neutral'; }
+
+// Show an image if it loads, otherwise fall back to emoji.
+function setPicture(el, src, emoji, alt) {
+  const img = new Image();
+  img.alt = alt;
+  img.onload  = () => { el.replaceChildren(img); };
+  img.onerror = () => {
+    const span = document.createElement('span');
+    span.className = 'emoji';
+    span.setAttribute('role', 'img');
+    span.setAttribute('aria-label', alt);
+    span.textContent = emoji;
+    el.replaceChildren(span);
+  };
+  img.src = src;
+}
+
+// ── Screens ───────────────────────────────────────────────────────────────
+function showScreen(id, back) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active', 'back'));
+  const screen = document.getElementById(id);
+  screen.classList.toggle('back', !!back);
+  screen.classList.add('active');
+}
+
+// ── Screen 1: choosing levels ────────────────────────────────────────────
+document.querySelectorAll('.opts').forEach(group => {
+  group.addEventListener('click', e => {
+    const btn = e.target.closest('.opt');
+    if (!btn) return;
+    group.querySelectorAll('.opt').forEach(b => {
+      b.classList.remove('sel-L', 'sel-M', 'sel-H');
+      b.setAttribute('aria-pressed', 'false');
+    });
+    btn.classList.add('sel-' + LEVEL_KEY[btn.dataset.value]);
+    btn.setAttribute('aria-pressed', 'true');
+    vals[group.dataset.group] = parseFloat(btn.dataset.value);
+    const ready = isReady();
+    document.getElementById('see-btn').disabled = !ready;
+    document.getElementById('choose-hint').textContent = ready
+      ? 'Ready! See how satisfied and dependent this person is.'
+      : 'Pick Low, Medium, or High for all three.';
+  });
+});
+
+document.querySelectorAll('.icon').forEach(el => {
+  setPicture(el, el.dataset.img, el.dataset.emoji, el.nextElementSibling.textContent);
+});
+
+// ── Screen 2: results ────────────────────────────────────────────────────
+const BAR_STYLES = {
+  VH: { color: '#27ae60', text: 'Very High', bg: '#d4edda', fg: '#155724' },
+  H:  { color: '#2ecc71', text: 'High',      bg: '#d1f0e0', fg: '#0b6623' },
+  N:  { color: '#f39c12', text: 'Neutral',   bg: '#fff3cd', fg: '#856404' },
+  L:  { color: '#e67e22', text: 'Low',       bg: '#ffe5b4', fg: '#8b3000' },
+  VL: { color: '#e74c3c', text: 'Very Low',  bg: '#f8d7da', fg: '#721c24' },
+};
+
+// Range -4 to +4
+function level(v) {
+  if (v >  2.0) return 'VH';
+  if (v >  0.5) return 'H';
+  if (v >= -0.5) return 'N';
+  if (v >= -2.0) return 'L';
+  return 'VL';
+}
+
+function renderBar(barId, badgeId, value) {
+  const bar   = document.getElementById(barId);
+  const badge = document.getElementById(badgeId);
+  bar.style.left  = Math.min(50, 50 + (value / 4) * 50) + '%';
+  bar.style.width = Math.abs(value / 4) * 50 + '%';
+  const s = BAR_STYLES[level(value)];
+  bar.style.backgroundColor = s.color;
+  badge.textContent = s.text;
+  badge.style.background = s.bg;
+  badge.style.color = s.fg;
+}
+
+function showStory() {
+  const el = document.getElementById('story-text');
+  el.style.opacity = '0';
+  setTimeout(() => {
+    el.textContent = EXAMPLES[comboKey()][exampleIdx];
+    el.style.opacity = '1';
+  }, 120);
+  document.getElementById('next-btn').textContent = `New Example (${exampleIdx + 1}/3)`;
+}
+
+function showResults() {
+  const sat = vals.outcomes - vals.cl;
+  const dep = vals.outcomes - vals.clalt;
+
+  ['outcomes', 'cl', 'clalt'].forEach(g => {
+    const pill = document.getElementById('pill-' + g);
+    const k = LEVEL_KEY[vals[g]];
+    pill.className = 'pill ' + k;
+    pill.textContent = LEVEL_NAME[k];
+  });
+
+  // Start bars from zero so they animate in
+  ['bar-sat', 'bar-dep'].forEach(id => { const b = document.getElementById(id); b.style.left = '50%'; b.style.width = '0'; });
+
+  const satLvl = sceneLevel(sat), depLvl = sceneLevel(dep);
+  setPicture(document.getElementById('scene'),
+    `pics/small/scene-sat-${satLvl}-dep-${depLvl}.jpg`,
+    SAT_EMOJI[satLvl] + DEP_EMOJI[depLvl],
+    `${satLvl} satisfaction, ${depLvl} dependence`);
+
+  exampleIdx = 0;
+  showScreen('screen-results');
+  showStory();
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    renderBar('bar-sat', 'badge-sat', sat);
+    renderBar('bar-dep', 'badge-dep', dep);
+  }));
+}
+
+document.getElementById('see-btn').addEventListener('click', () => { if (isReady()) showResults(); });
+document.getElementById('back-btn').addEventListener('click', () => showScreen('screen-choose', true));
+document.getElementById('next-btn').addEventListener('click', () => {
+  exampleIdx = (exampleIdx + 1) % 3;
+  showStory();
+});
+
+// ── Scale stage to fit the frame ─────────────────────────────────────────
+function fit() {
+  const s = Math.min(window.innerWidth / 720, window.innerHeight / 450);
+  document.getElementById('stage').style.transform = `translate(-50%, -50%) scale(${s})`;
+}
+window.addEventListener('resize', fit);
+fit();
+</script>
+</body>
+</html>
