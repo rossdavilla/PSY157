@@ -64,6 +64,7 @@
 
   /* Footer */
   .foot { flex: none; height: 40px; margin-top: 10px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .foot.end { justify-content: flex-end; }
   .hint { font-size: 12.5px; color: var(--muted); font-style: italic; }
   .btn {
     background: var(--brand); color: #fff; border: none; border-radius: 30px;
@@ -73,8 +74,6 @@
   .btn:hover { background: var(--brandHover); }
   .btn:active { transform: translateY(1px); }
   .btn:disabled { background: #a0b4cc; cursor: default; transform: none; }
-  .btn.secondary { background: #fff; color: var(--brand); border: 2px solid var(--brand); padding: 8px 20px; }
-  .btn.secondary:hover { background: #eef3fb; }
 
   /* ── Screen 1: choose levels ── */
   .vars { flex: 1; min-height: 0; margin-top: 10px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
@@ -128,7 +127,7 @@
     border: 2px solid #f0c060; border-radius: 14px; background: linear-gradient(135deg, #fffdf0, #fff5f8);
     padding: 12px 16px;
   }
-  #story-text { margin: 0; font-size: 16px; line-height: 1.6; transition: opacity 0.2s; }
+  #story-text { margin: 0; font-size: 16px; line-height: 1.6; }
 </style>
 </head>
 <body>
@@ -215,9 +214,8 @@
         </div>
       </div>
 
-      <div class="foot">
-        <button class="btn secondary" id="back-btn">↺ Adjust Choices</button>
-        <button class="btn" id="next-btn">New Example (1/3)</button>
+      <div class="foot end">
+        <button class="btn" id="back-btn">↺ Adjust Choices</button>
       </div>
     </section>
 
@@ -227,7 +225,7 @@
 <script>
 // ── State ─────────────────────────────────────────────────────────────────
 const vals = { outcomes: null, cl: null, clalt: null };
-let exampleIdx = 0;
+let lastStory = { key: null, idx: -1 };
 
 // ── Examples: keyed by "Outcomes_CL_CLALT" (each L/M/H), 3 per combo ────
 const EXAMPLES = {
@@ -498,14 +496,15 @@ function renderBar(barId, badgeId, value) {
   badge.style.color = s.fg;
 }
 
+// Pick one of the combo's 3 scenarios at random, avoiding an immediate repeat
 function showStory() {
-  const el = document.getElementById('story-text');
-  el.style.opacity = '0';
-  setTimeout(() => {
-    el.textContent = EXAMPLES[comboKey()][exampleIdx];
-    el.style.opacity = '1';
-  }, 120);
-  document.getElementById('next-btn').textContent = `New Example (${exampleIdx + 1}/3)`;
+  const key = comboKey();
+  const examples = EXAMPLES[key];
+  let idx;
+  do { idx = Math.floor(Math.random() * examples.length); }
+  while (key === lastStory.key && idx === lastStory.idx);
+  lastStory = { key, idx };
+  document.getElementById('story-text').textContent = examples[idx];
 }
 
 function showResults() {
@@ -528,7 +527,6 @@ function showResults() {
     SAT_EMOJI[satLvl] + DEP_EMOJI[depLvl],
     `${satLvl} satisfaction, ${depLvl} dependence`);
 
-  exampleIdx = 0;
   showScreen('screen-results');
   showStory();
   requestAnimationFrame(() => requestAnimationFrame(() => {
@@ -539,10 +537,6 @@ function showResults() {
 
 document.getElementById('see-btn').addEventListener('click', () => { if (isReady()) showResults(); });
 document.getElementById('back-btn').addEventListener('click', () => showScreen('screen-choose', true));
-document.getElementById('next-btn').addEventListener('click', () => {
-  exampleIdx = (exampleIdx + 1) % 3;
-  showStory();
-});
 
 // ── Scale stage to fit the frame ─────────────────────────────────────────
 function fit() {
