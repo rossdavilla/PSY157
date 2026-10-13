@@ -375,9 +375,9 @@ const EXAMPLES = {
 ],
 
 'L_H_L': [
-  "Jordan had extraordinary standards, and Reese disappoints spectacularly — the relationship is draining and nowhere near what she deserves. The kicker? No one better is in sight. Very low satisfaction, neutral dependence. She stays not because she loves Reese, but because the alternative is a vacuum. She simmers.",
-  "Adriana waited years for someone who matched her sky-high standards, then settled for Lucas and called it 'realistic.' Now she knows it was just sad. Lucas is exhausting, and her alternatives are no better. Very low satisfaction, neutral dependence. She's stuck, and she knows it.",
-  "Everything Mia wanted — passion, depth, real communication — is missing with Trevor. The relationship drains her, and the exit leads to an equally barren landscape. Very low satisfaction, neutral dependence. She can't find a better option, and she can't be happy here. That's brutal.",
+  "Jordan had extraordinary standards, and Reese disappoints spectacularly — the relationship is draining and nowhere near what she deserves. The kicker? No one better is in sight. Very low satisfaction, very high dependence. She stays not because she loves Reese, but because the alternative is a vacuum. She simmers.",
+  "Adriana waited years for someone who matched her sky-high standards, then settled for Lucas and called it 'realistic.' Now she knows it was just sad. Lucas is exhausting, but her alternatives are even bleaker. Very low satisfaction, very high dependence. She's stuck, and she knows it.",
+  "Everything Mia wanted — passion, depth, real communication — is missing with Trevor. The relationship drains her, and the exit leads to an even more barren landscape. Very low satisfaction, very high dependence. She can't leave, and she can't be happy here. That's brutal.",
 ],
 
 'L_H_M': [
@@ -509,7 +509,9 @@ function showStory() {
 
 function showResults() {
   const sat = vals.outcomes - vals.cl;
-  const dep = vals.outcomes - vals.clalt;
+  // Outcomes − CL-ALT gives Neutral for Low/High/Low; show it as the classic
+  // "unhappy and trapped" case instead: lowest satisfaction, highest dependence.
+  const dep = comboKey() === 'L_H_L' ? 4 : vals.outcomes - vals.clalt;
 
   ['outcomes', 'cl', 'clalt'].forEach(g => {
     const pill = document.getElementById('pill-' + g);
