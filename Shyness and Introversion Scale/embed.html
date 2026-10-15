@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Social Personality Scale</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --cream: #F9F5EE;
+    --parchment: #EDE7D9;
+    --navy: #1C2B4A;
+    --navy-light: #2E4270;
+    --gold: #B8860B;
+    --gold-light: #D4A843;
+    --teal: #2A7A72;
+    --teal-light: #3EA89D;
+    --rose: #B5442E;
+    --text: #2C2C2C;
+    --muted: #7A7167;
+    --border: #D6CCBB;
+    --card-bg: #FFFDF8;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text);
+    background: var(--navy);
+  }
+
+  /* Fixed 720x450 stage, scaled to fit whatever frame it's placed in */
+  #stage {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 720px;
+    height: 450px;
+    padding: 10px;
+    transform: translate(-50%, -50%);
+    transform-origin: center center;
+    background: radial-gradient(ellipse at 20% 80%, rgba(46,66,112,0.8) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 20%, rgba(42,122,114,0.4) 0%, transparent 55%),
+                var(--navy);
+  }
+
+  .card {
+    height: 100%;
+    background: var(--cream);
+    border-radius: 14px;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
+    padding: 16px 24px 14px;
+    overflow: hidden;
+  }
+
+  .screen { display: none; height: 100%; flex-direction: column; }
+  .screen.active { display: flex; animation: slideIn 0.3s ease; }
+  .screen.active.back { animation-name: slideBack; }
+  @keyframes slideIn   { from { opacity: 0; transform: translateX(24px); }  to { opacity: 1; transform: none; } }
+  @keyframes slideBack { from { opacity: 0; transform: translateX(-24px); } to { opacity: 1; transform: none; } }
+
+  .label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+
+  h1, h2, .q-text, .badge-title { font-family: 'Playfair Display', serif; color: var(--navy); }
+
+  /* Buttons */
+  .btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14.5px;
+    font-weight: 500;
+    background: var(--navy);
+    color: #FFFDF8;
+    border: 1.5px solid var(--navy);
+    border-radius: 8px;
+    padding: 10px 30px;
+    cursor: pointer;
+    letter-spacing: 0.4px;
+    transition: background 0.2s, transform 0.15s, color 0.2s;
+  }
+  .btn:hover { background: var(--navy-light); border-color: var(--navy-light); }
+  .btn:active { transform: translateY(1px); }
+  .btn.ghost { background: transparent; color: var(--navy); }
+  .btn.ghost:hover { background: var(--navy); color: #FFFDF8; }
+  .btn.small { padding: 7px 18px; font-size: 13px; }
+  .btn[hidden] { display: none; }
+
+  /* ── Start screen ── */
+  #start { align-items: center; justify-content: center; text-align: center; }
+  #start h1 { font-size: 38px; font-weight: 700; margin: 10px 0 18px; line-height: 1.15; }
+  .instructions {
+    max-width: 540px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--gold);
+    border-radius: 6px;
+    padding: 14px 18px;
+    font-size: 14.5px;
+    line-height: 1.65;
+    color: var(--muted);
+    text-align: left;
+  }
+  .instructions strong { color: var(--navy); font-weight: 500; }
+  .meta { font-size: 12.5px; color: var(--muted); margin: 14px 0 18px; }
+
+  /* ── Question screen ── */
+  .top { flex: none; display: flex; align-items: center; gap: 14px; height: 24px; }
+  .top .label { white-space: nowrap; }
+  .track {
+    flex: 1;
+    height: 6px;
+    background: var(--border);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--teal), var(--gold-light));
+    border-radius: 99px;
+    transition: width 0.4s ease;
+  }
+  .count { font-size: 12.5px; font-weight: 500; color: var(--muted); white-space: nowrap; }
+
+  .q-body { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
+  .q-text {
+    font-size: 25px;
+    line-height: 1.4;
+    text-align: center;
+    max-width: 600px;
+    margin: 0 auto 30px;
+  }
+
+  .options { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+  .opt {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13.5px;
+    line-height: 1.3;
+    color: var(--muted);
+    background: var(--card-bg);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 6px;
+    min-height: 66px;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    white-space: pre-line;
+  }
+  .opt .n { font-size: 11px; font-weight: 700; color: var(--gold); }
+  .opt:hover { border-color: var(--navy-light); color: var(--navy); background: var(--parchment); }
+  .opt.selected { background: var(--navy); border-color: var(--navy); color: #FFFDF8; font-weight: 500; }
+  .opt.selected .n { color: var(--gold-light); }
+
+  .foot { flex: none; height: 40px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .hint { font-size: 12.5px; color: var(--muted); font-style: italic; }
+
+  /* ── Results screen ── */
+  #results .top { justify-content: space-between; height: 30px; }
+  #results h2 { font-size: 22px; }
+
+  .bars { flex: none; margin-top: 12px; display: flex; flex-direction: column; gap: 12px; }
+  .bar-row { display: grid; grid-template-columns: 96px 1fr 44px 150px; align-items: center; gap: 12px; }
+  .bar-name { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 600; color: var(--navy); }
+  .bar-track { height: 22px; background: var(--parchment); border-radius: 99px; overflow: hidden; position: relative; }
+  .bar-track::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    border-left: 1.5px dashed rgba(122,113,103,0.45);
+  }
+  .bar-fill {
+    height: 100%;
+    width: 0%;
+    border-radius: 99px;
+    transition: width 1.2s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  .shy-bar   { background: linear-gradient(90deg, #2A7A72, #3EA89D); }
+  .intro-bar { background: linear-gradient(90deg, #1C2B4A, #2E4270); }
+  .bar-score { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: var(--navy); text-align: right; }
+  .band {
+    justify-self: start;
+    padding: 3px 12px;
+    border-radius: 99px;
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .band-low  { background: rgba(42,122,114,0.12); color: var(--teal); }
+  .band-mid  { background: rgba(184,134,11,0.12); color: var(--gold); }
+  .band-high { background: rgba(181,68,46,0.12);  color: var(--rose); }
+  .scale-note { font-size: 11px; color: var(--muted); margin: 6px 0 0 108px; }
+
+  .interpretation {
+    flex: 1;
+    min-height: 0;
+    margin-top: 12px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 18px;
+  }
+  .interpretation h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    color: var(--navy);
+    margin-bottom: 8px;
+  }
+  .badge {
+    display: inline-block;
+    padding: 4px 14px;
+    border-radius: 6px;
+    background: var(--navy);
+    color: #FFFDF8;
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+  .interpretation p { font-size: 14.5px; color: var(--muted); line-height: 1.65; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="card">
+
+    <!-- Start -->
+    <section class="screen active" id="start">
+      <div class="label">Psychology Assessment Tool</div>
+      <h1>Social Personality Scale</h1>
+      <div class="instructions">
+        <strong>Instructions:</strong> Read each statement and select the option that best describes you.
+        Answer based on how you <em>generally</em> think, feel, or behave — not how you wish you were.
+        There are no right or wrong answers.
+      </div>
+      <div class="meta">12 statements · about 2 minutes</div>
+      <button class="btn" id="start-btn">Start</button>
+    </section>
+
+    <!-- Question -->
+    <section class="screen" id="question">
+      <div class="top">
+        <div class="label">Social Personality Scale</div>
+        <div class="track"><div class="fill" id="fill"></div></div>
+        <div class="count" id="count">1 of 12</div>
+      </div>
+      <div class="q-body">
+        <div class="q-text" id="q-text"></div>
+        <div class="options" id="options"></div>
+      </div>
+      <div class="foot">
+        <button class="btn ghost small" id="back-btn">← Back</button>
+        <span class="hint" id="hint">Click an answer to continue</span>
+        <button class="btn small" id="next-btn" hidden>Next →</button>
+      </div>
+    </section>
+
+    <!-- Results -->
+    <section class="screen" id="results">
+      <div class="top">
+        <h2>Your Results</h2>
+        <button class="btn ghost small" id="reset-btn">↺ Start Over</button>
+      </div>
+      <div class="bars">
+        <div class="bar-row">
+          <div class="bar-name">Shyness</div>
+          <div class="bar-track"><div class="bar-fill shy-bar" id="shy-bar"></div></div>
+          <div class="bar-score" id="shy-score">0</div>
+          <span class="band" id="shy-band"></span>
+        </div>
+        <div class="bar-row">
+          <div class="bar-name">Introversion</div>
+          <div class="bar-track"><div class="bar-fill intro-bar" id="intro-bar"></div></div>
+          <div class="bar-score" id="intro-score">0</div>
+          <span class="band" id="intro-band"></span>
+        </div>
+      </div>
+      <div class="scale-note">Scores range from 0 to 100. The dashed line marks the midpoint (50).</div>
+      <div class="interpretation">
+        <h3>What do these scores mean?</h3>
+        <div class="badge" id="badge">—</div>
+        <p id="interp-text"></p>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script>
+// ── Scale data ──────────────────────────────────────────────────────────
+// type: 'shy' | 'intro'; reverse: true = flip scoring
+const ITEMS = [
+  { type: 'shy',   reverse: false, text: "I feel tense when I'm with people I don't know well." },
+  { type: 'intro', reverse: true,  text: "I like going out a lot." },
+  { type: 'shy',   reverse: false, text: "During conversations with new acquaintances, I worry about saying something dumb." },
+  { type: 'intro', reverse: false, text: "I don't like to draw attention to myself." },
+  { type: 'shy',   reverse: false, text: "When in a group of people, I have trouble thinking of the right things to talk about." },
+  { type: 'intro', reverse: false, text: "I would describe my life as somewhat dull." },
+  { type: 'shy',   reverse: false, text: "I am often uncomfortable at parties and other social gatherings." },
+  { type: 'intro', reverse: false, text: "I tend to keep to myself at social events." },
+  { type: 'shy',   reverse: false, text: "It is hard for me to act natural when I am meeting new people." },
+  { type: 'intro', reverse: true,  text: "I make new friends very easily." },
+  { type: 'shy',   reverse: false, text: "I often have doubts about whether other people like to be with me." },
+  { type: 'intro', reverse: false, text: "I generally have little to say." },
+];
+
+const OPTIONS = ["Strongly\nDisagree", "Somewhat\nDisagree", "Somewhere in\nthe Middle", "Somewhat\nAgree", "Strongly\nAgree"];
+
+const INTERPRETATIONS = {
+  LL: { badge: '🌟 Social Butterfly',
+        text: 'You scored low on both shyness and introversion, suggesting you feel comfortable and energized in social settings. You likely find it easy to meet new people, enjoy being around others, and feel confident in conversations. For you, social situations are typically a source of energy rather than stress.' },
+  LH: { badge: '🌿 Quiet Confident',
+        text: "You scored low on shyness but high on introversion. You can engage comfortably with new people and don't feel significant social anxiety, yet you often prefer solitude or low-stimulation settings. You may enjoy meaningful one-on-one conversations over large gatherings, not out of fear, but out of preference." },
+  HL: { badge: '⚡ Anxious Extravert',
+        text: 'You scored high on shyness but low on introversion. While you crave social connection and may genuinely enjoy being around others, social situations can trigger anxiety or self-consciousness, especially with unfamiliar people. With time and comfort, this anxiety often fades as relationships develop.' },
+  HH: { badge: '🌙 Reflective Homebody',
+        text: 'You scored high on both shyness and introversion. You likely prefer calm, familiar environments and may find social situations, especially with new people, draining or anxiety-provoking. This combination is common, and many people find their niche in smaller, trusted social circles where they feel most themselves.' },
+};
+
+// ── State ───────────────────────────────────────────────────────────────
+const answers = new Array(ITEMS.length).fill(null);
+let current = 0;
+let advanceTimer = null;
+
+const $ = id => document.getElementById(id);
+
+function show(id, back = false) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active', 'back'));
+  const el = $(id);
+  void el.offsetWidth; // restart the slide animation
+  el.classList.add('active');
+  if (back) el.classList.add('back');
+}
+
+// ── Question screen ─────────────────────────────────────────────────────
+OPTIONS.forEach((label, i) => {
+  const b = document.createElement('button');
+  b.className = 'opt';
+  b.innerHTML = `<span class="n">${i + 1}</span><span>${label}</span>`;
+  b.addEventListener('click', () => choose(i + 1));
+  $('options').appendChild(b);
+});
+
+function renderQuestion(back = false) {
+  clearTimeout(advanceTimer);
+  $('q-text').textContent = ITEMS[current].text;
+  $('count').textContent = `${current + 1} of ${ITEMS.length}`;
+  $('fill').style.width = (answers.filter(a => a !== null).length / ITEMS.length * 100) + '%';
+  document.querySelectorAll('.opt').forEach((b, i) => b.classList.toggle('selected', answers[current] === i + 1));
+  const answered = answers[current] !== null;
+  $('next-btn').hidden = !answered;
+  $('hint').style.visibility = answered ? 'hidden' : 'visible';
+  show('question', back);
+}
+
+function choose(value) {
+  answers[current] = value;
+  document.querySelectorAll('.opt').forEach((b, i) => b.classList.toggle('selected', value === i + 1));
+  $('fill').style.width = (answers.filter(a => a !== null).length / ITEMS.length * 100) + '%';
+  clearTimeout(advanceTimer);
+  advanceTimer = setTimeout(next, 350);
+}
+
+function next() {
+  if (answers[current] === null) return;
+  if (current < ITEMS.length - 1) { current++; renderQuestion(); }
+  else showResults();
+}
+
+function back() {
+  if (current === 0) { clearTimeout(advanceTimer); show('start', true); return; }
+  current--;
+  renderQuestion(true);
+}
+
+// ── Scoring ─────────────────────────────────────────────────────────────
+function score(type) {
+  let raw = 0;
+  ITEMS.forEach((item, i) => {
+    if (item.type !== type) return;
+    raw += item.reverse ? 6 - answers[i] : answers[i];
+  });
+  return Math.round(((raw - 6) / 24) * 100); // 6–30 → 0–100
+}
+
+function band(s, name) {
+  if (s < 34) return ['band-low',  `Low ${name}`];
+  if (s < 67) return ['band-mid',  `Moderate ${name}`];
+  return             ['band-high', `High ${name}`];
+}
+
+function showResults() {
+  const shy = score('shy');
+  const intro = score('intro');
+
+  [['shy', shy, 'Shyness'], ['intro', intro, 'Introversion']].forEach(([key, s, name]) => {
+    $(`${key}-bar`).style.width = '0%';
+    $(`${key}-score`).textContent = s;
+    const [cls, label] = band(s, name);
+    $(`${key}-band`).className = `band ${cls}`;
+    $(`${key}-band`).textContent = label;
+  });
+
+  const interp = INTERPRETATIONS[(shy >= 50 ? 'H' : 'L') + (intro >= 50 ? 'H' : 'L')];
+  $('badge').textContent = interp.badge;
+  $('interp-text').textContent = interp.text;
+
+  show('results');
+  setTimeout(() => {
+    $('shy-bar').style.width = shy + '%';
+    $('intro-bar').style.width = intro + '%';
+  }, 150);
+}
+
+// ── Wiring ──────────────────────────────────────────────────────────────
+$('start-btn').addEventListener('click', () => { current = 0; renderQuestion(); });
+$('back-btn').addEventListener('click', back);
+$('next-btn').addEventListener('click', next);
+$('reset-btn').addEventListener('click', () => {
+  answers.fill(null);
+  current = 0;
+  show('start', true);
+});
+
+// Keys 1–5 answer, arrows move between questions
+document.addEventListener('keydown', e => {
+  if (!$('question').classList.contains('active')) return;
+  if (e.key >= '1' && e.key <= '5') choose(Number(e.key));
+  else if (e.key === 'ArrowLeft') back();
+  else if (e.key === 'ArrowRight') next();
+});
+
+// ── Scale stage to fit the frame ────────────────────────────────────────
+function fit() {
+  const s = Math.min(window.innerWidth / 720, window.innerHeight / 450);
+  $('stage').style.transform = `translate(-50%, -50%) scale(${s})`;
+}
+window.addEventListener('resize', fit);
+fit();
+</script>
+</body>
+</html>

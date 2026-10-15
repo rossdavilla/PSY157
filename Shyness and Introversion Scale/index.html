@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Social Personality Scale</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --cream: #F9F5EE;
+      --parchment: #EDE7D9;
+      --navy: #1C2B4A;
+      --navy-light: #2E4270;
+      --gold: #B8860B;
+      --gold-light: #D4A843;
+      --teal: #2A7A72;
+      --teal-light: #3EA89D;
+      --rose: #B5442E;
+      --text: #2C2C2C;
+      --muted: #7A7167;
+      --border: #D6CCBB;
+      --card-bg: #FFFDF8;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background-color: var(--cream);
+      color: var(--text);
+      min-height: 100vh;
+      padding-bottom: 60px;
+    }
+
+    /* ─── Header ─── */
+    header {
+      background: var(--navy);
+      padding: 40px 24px 32px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    header::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 20% 80%, rgba(46,66,112,0.8) 0%, transparent 60%),
+                  radial-gradient(ellipse at 80% 20%, rgba(42,122,114,0.4) 0%, transparent 55%);
+      pointer-events: none;
+    }
+
+    header .label {
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--gold-light);
+      margin-bottom: 12px;
+      position: relative;
+    }
+
+    header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(26px, 4vw, 42px);
+      font-weight: 700;
+      color: #FFFDF8;
+      line-height: 1.2;
+      position: relative;
+    }
+
+    header p {
+      margin-top: 14px;
+      font-size: 15px;
+      color: rgba(255,253,248,0.68);
+      font-weight: 300;
+      max-width: 560px;
+      margin-left: auto;
+      margin-right: auto;
+      line-height: 1.6;
+      position: relative;
+    }
+
+    /* ─── Progress ─── */
+    .progress-bar-wrap {
+      background: var(--parchment);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 24px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .progress-inner {
+      max-width: 760px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .progress-track {
+      flex: 1;
+      height: 6px;
+      background: var(--border);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--teal), var(--gold-light));
+      border-radius: 99px;
+      transition: width 0.4s ease;
+      width: 0%;
+    }
+
+    .progress-text {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    /* ─── Main ─── */
+    main {
+      max-width: 760px;
+      margin: 36px auto 0;
+      padding: 0 20px;
+    }
+
+    .instructions {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--gold);
+      border-radius: 6px;
+      padding: 18px 22px;
+      margin-bottom: 32px;
+      font-size: 14.5px;
+      line-height: 1.7;
+      color: var(--muted);
+    }
+
+    .instructions strong {
+      color: var(--navy);
+      font-weight: 500;
+    }
+
+    /* ─── Question cards ─── */
+    .question-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 24px 26px;
+      margin-bottom: 16px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .question-card.answered {
+      border-color: var(--teal-light);
+      box-shadow: 0 2px 12px rgba(42,122,114,0.08);
+    }
+
+    .question-card.unanswered-highlight {
+      border-color: var(--rose);
+      box-shadow: 0 2px 12px rgba(181,68,46,0.1);
+      animation: shake 0.3s ease;
+    }
+
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      25% { transform: translateX(-4px); }
+      75% { transform: translateX(4px); }
+    }
+
+    .q-number {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 8px;
+    }
+
+    .q-text {
+      font-size: 16px;
+      font-weight: 400;
+      color: var(--navy);
+      line-height: 1.55;
+      margin-bottom: 20px;
+      font-family: 'Playfair Display', serif;
+    }
+
+    /* ─── Radio buttons ─── */
+    .options {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .option-label {
+      flex: 1;
+      min-width: 80px;
+      cursor: pointer;
+    }
+
+    .option-label input[type="radio"] {
+      display: none;
+    }
+
+    .option-btn {
+      display: block;
+      text-align: center;
+      padding: 10px 8px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 12.5px;
+      font-weight: 400;
+      color: var(--muted);
+      background: var(--cream);
+      transition: all 0.18s ease;
+      line-height: 1.3;
+      user-select: none;
+    }
+
+    .option-label input[type="radio"]:checked + .option-btn {
+      background: var(--navy);
+      border-color: var(--navy);
+      color: #FFFDF8;
+      font-weight: 500;
+    }
+
+    .option-label:hover .option-btn {
+      border-color: var(--navy-light);
+      color: var(--navy);
+      background: var(--parchment);
+    }
+
+    .option-label input[type="radio"]:checked + .option-btn:hover {
+      background: var(--navy);
+      color: #FFFDF8;
+    }
+
+    /* ─── Submit button ─── */
+    .submit-wrap {
+      text-align: center;
+      margin: 36px 0 20px;
+    }
+
+    #show-results-btn {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 500;
+      background: var(--navy);
+      color: #FFFDF8;
+      border: none;
+      border-radius: 8px;
+      padding: 16px 48px;
+      cursor: pointer;
+      letter-spacing: 0.5px;
+      transition: background 0.2s, transform 0.15s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #show-results-btn::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(212,168,67,0.15), transparent);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    #show-results-btn:hover {
+      background: var(--navy-light);
+      transform: translateY(-2px);
+    }
+
+    #show-results-btn:hover::after { opacity: 1; }
+    #show-results-btn:active { transform: translateY(0); }
+
+    .error-msg {
+      color: var(--rose);
+      font-size: 13.5px;
+      margin-top: 12px;
+      display: none;
+    }
+
+    /* ─── Results section ─── */
+    #results-section {
+      display: none;
+      margin-top: 12px;
+    }
+
+    #results-section.visible {
+      display: block;
+      animation: fadeUp 0.5s ease;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .results-header {
+      text-align: center;
+      padding: 32px 0 24px;
+    }
+
+    .results-header h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 28px;
+      color: var(--navy);
+    }
+
+    .results-header p {
+      font-size: 14px;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+
+    .charts-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 28px;
+    }
+
+    @media (max-width: 580px) {
+      .charts-grid { grid-template-columns: 1fr; }
+      .options { flex-direction: column; }
+      .option-btn { padding: 10px 12px; }
+    }
+
+    .chart-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px 24px;
+      text-align: center;
+    }
+
+    .chart-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 17px;
+      color: var(--navy);
+      margin-bottom: 6px;
+    }
+
+    .chart-subtitle {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 22px;
+    }
+
+    /* Gauge chart */
+    .gauge-wrap {
+      position: relative;
+      width: 180px;
+      margin: 0 auto 18px;
+    }
+
+    .gauge-wrap svg {
+      width: 100%;
+      height: auto;
+      overflow: visible;
+    }
+
+    .gauge-score {
+      font-family: 'Playfair Display', serif;
+      font-size: 36px;
+      font-weight: 700;
+      fill: var(--navy);
+    }
+
+    .gauge-label-text {
+      font-size: 10px;
+      fill: var(--muted);
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    /* Bar chart */
+    .bar-chart-wrap {
+      margin: 0 auto;
+    }
+
+    .bar-track {
+      height: 22px;
+      background: var(--parchment);
+      border-radius: 99px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 99px;
+      width: 0%;
+      transition: width 1.2s cubic-bezier(0.23, 1, 0.32, 1);
+    }
+
+    .bar-fill.shy-bar { background: linear-gradient(90deg, #2A7A72, #3EA89D); }
+    .bar-fill.intro-bar { background: linear-gradient(90deg, #1C2B4A, #2E4270); }
+
+    .bar-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+
+    /* Score band description */
+    .score-band {
+      display: inline-block;
+      padding: 4px 14px;
+      border-radius: 99px;
+      font-size: 12.5px;
+      font-weight: 500;
+      margin-top: 4px;
+    }
+
+    .band-low    { background: rgba(42,122,114,0.12); color: var(--teal); }
+    .band-mid    { background: rgba(184,134,11,0.12); color: var(--gold); }
+    .band-high   { background: rgba(181,68,46,0.12);  color: var(--rose); }
+
+    /* Interpretation box */
+    .interpretation {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .interpretation h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 17px;
+      color: var(--navy);
+      margin-bottom: 10px;
+    }
+
+    .quadrant-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 16px;
+      border-radius: 6px;
+      background: var(--navy);
+      color: #FFFDF8;
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 12px;
+    }
+
+    .interpretation p {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.75;
+    }
+
+    /* Reset button */
+    #reset-btn {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      background: transparent;
+      color: var(--navy);
+      border: 1.5px solid var(--navy);
+      border-radius: 8px;
+      padding: 12px 36px;
+      cursor: pointer;
+      transition: all 0.18s;
+      display: block;
+      margin: 0 auto 40px;
+    }
+
+    #reset-btn:hover {
+      background: var(--navy);
+      color: #FFFDF8;
+    }
+
+    /* Divider */
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 32px 0;
+    }
+
+    /* Score number animation */
+    .score-num {
+      display: inline-block;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="label">Psychology Assessment Tool</div>
+  <h1>Social Personality Scale</h1>
+  <p>Read each statement carefully and indicate how well it describes you. There are no right or wrong answers.</p>
+</header>
+
+<!-- Progress -->
+<div class="progress-bar-wrap">
+  <div class="progress-inner">
+    <div class="progress-track">
+      <div class="progress-fill" id="progress-fill"></div>
+    </div>
+    <div class="progress-text" id="progress-text">0 / 12 answered</div>
+  </div>
+</div>
+
+<main>
+
+  <div class="instructions">
+    <strong>Instructions:</strong> For each statement below, select the option that best describes you personally.
+    Answer based on how you <em>generally</em> think, feel, or behave — not how you wish you were.
+  </div>
+
+  <!-- Questions injected by JS -->
+  <div id="questions-container"></div>
+
+  <div class="submit-wrap">
+    <button id="show-results-btn">Show My Results</button>
+    <div class="error-msg" id="error-msg">⚠ Please answer all 12 questions before viewing results.</div>
+  </div>
+
+  <!-- Results -->
+  <div id="results-section">
+    <hr class="divider" />
+    <div class="results-header">
+      <h2>Your Results</h2>
+      <p>Scores are displayed on a 0–100 scale for each dimension.</p>
+    </div>
+
+    <div class="charts-grid">
+      <!-- Shyness chart -->
+      <div class="chart-card">
+        <div class="chart-title">Shyness</div>
+        <div class="chart-subtitle">Social anxiety &amp; self-consciousness with strangers</div>
+        <div class="gauge-wrap" id="shy-gauge-wrap"></div>
+        <div class="bar-track">
+          <div class="bar-fill shy-bar" id="shy-bar"></div>
+        </div>
+        <div class="bar-labels"><span>0</span><span>50</span><span>100</span></div>
+        <div id="shy-band"></div>
+      </div>
+
+      <!-- Introversion chart -->
+      <div class="chart-card">
+        <div class="chart-title">Introversion</div>
+        <div class="chart-subtitle">Preference for solitude &amp; low social stimulation</div>
+        <div class="gauge-wrap" id="intro-gauge-wrap"></div>
+        <div class="bar-track">
+          <div class="bar-fill intro-bar" id="intro-bar"></div>
+        </div>
+        <div class="bar-labels"><span>0</span><span>50</span><span>100</span></div>
+        <div id="intro-band"></div>
+      </div>
+    </div>
+
+    <!-- Interpretation -->
+    <div class="interpretation" id="interpretation-box">
+      <h3>What do these scores mean?</h3>
+      <div class="quadrant-badge" id="quadrant-badge">—</div>
+      <p id="interpretation-text"></p>
+    </div>
+
+    <button id="reset-btn">↺ Start Over</button>
+  </div>
+
+</main>
+
+<script>
+  // ─── Scale Data ───────────────────────────────────────────────
+  // type: 'shy' | 'intro'
+  // reverse: true = flip scoring
+  const ITEMS = [
+    { id: 1,  type: 'shy',   reverse: false, text: "I feel tense when I'm with people I don't know well." },
+    { id: 2,  type: 'intro', reverse: true,  text: "I like going out a lot." },
+    { id: 3,  type: 'shy',   reverse: false, text: "During conversations with new acquaintances, I worry about saying something dumb." },
+    { id: 4,  type: 'intro', reverse: false, text: "I don't like to draw attention to myself." },
+    { id: 5,  type: 'shy',   reverse: false, text: "When in a group of people, I have trouble thinking of the right things to talk about." },
+    { id: 6,  type: 'intro', reverse: false, text: "I would describe my life as somewhat dull." },
+    { id: 7,  type: 'shy',   reverse: false, text: "I am often uncomfortable at parties and other social gatherings." },
+    { id: 8,  type: 'intro', reverse: false, text: "I tend to keep to myself at social events." },
+    { id: 9,  type: 'shy',   reverse: false, text: "It is hard for me to act natural when I am meeting new people." },
+    { id: 10, type: 'intro', reverse: true,  text: "I make new friends very easily." },
+    { id: 11, type: 'shy',   reverse: false, text: "I often have doubts about whether other people like to be with me." },
+    { id: 12, type: 'intro', reverse: false, text: "I generally have little to say." },
+  ];
+
+  const RESPONSE_OPTIONS = [
+    { label: "Strongly\nDisagree",   value: 1 },
+    { label: "Somewhat\nDisagree",   value: 2 },
+    { label: "Somewhere\nin the Middle", value: 3 },
+    { label: "Somewhat\nAgree",      value: 4 },
+    { label: "Strongly\nAgree",      value: 5 },
+  ];
+
+  // ─── Render Questions ─────────────────────────────────────────
+  const container = document.getElementById('questions-container');
+  ITEMS.forEach((item, idx) => {
+    const card = document.createElement('div');
+    card.className = 'question-card';
+    card.id = `card-${item.id}`;
+
+    const qNum = document.createElement('div');
+    qNum.className = 'q-number';
+    qNum.textContent = `Statement ${idx + 1} of ${ITEMS.length}`;
+
+    const qText = document.createElement('div');
+    qText.className = 'q-text';
+    qText.textContent = item.text;
+
+    const opts = document.createElement('div');
+    opts.className = 'options';
+
+    RESPONSE_OPTIONS.forEach(opt => {
+      const lbl = document.createElement('label');
+      lbl.className = 'option-label';
+
+      const input = document.createElement('input');
+      input.type = 'radio';
+      input.name = `q${item.id}`;
+      input.value = opt.value;
+
+      const btn = document.createElement('span');
+      btn.className = 'option-btn';
+      btn.textContent = opt.label.replace('\n', ' ');
+
+      input.addEventListener('change', () => {
+        card.classList.add('answered');
+        card.classList.remove('unanswered-highlight');
+        updateProgress();
+      });
+
+      lbl.appendChild(input);
+      lbl.appendChild(btn);
+      opts.appendChild(lbl);
+    });
+
+    card.appendChild(qNum);
+    card.appendChild(qText);
+    card.appendChild(opts);
+    container.appendChild(card);
+  });
+
+  // ─── Progress ─────────────────────────────────────────────────
+  function updateProgress() {
+    let answered = 0;
+    ITEMS.forEach(item => {
+      if (document.querySelector(`input[name="q${item.id}"]:checked`)) answered++;
+    });
+    const pct = (answered / ITEMS.length) * 100;
+    document.getElementById('progress-fill').style.width = pct + '%';
+    document.getElementById('progress-text').textContent = `${answered} / ${ITEMS.length} answered`;
+  }
+
+  // ─── Scoring ──────────────────────────────────────────────────
+  function getRawScore(type) {
+    let total = 0;
+    ITEMS.filter(i => i.type === type).forEach(item => {
+      const sel = document.querySelector(`input[name="q${item.id}"]:checked`);
+      if (!sel) return;
+      let val = parseInt(sel.value);
+      if (item.reverse) val = 6 - val;
+      total += val;
+    });
+    return total; // 6–30
+  }
+
+  function toScale(raw) {
+    // map 6–30 → 0–100
+    return Math.round(((raw - 6) / 24) * 100);
+  }
+
+  // ─── Gauge SVG ────────────────────────────────────────────────
+  function buildGauge(wrapId, score, color1, color2) {
+    const wrap = document.getElementById(wrapId);
+    const r = 70, cx = 90, cy = 90;
+    const startAngle = -210, endAngle = 30; // 240° sweep
+    const totalDeg = 240;
+
+    function polarToXY(deg, radius) {
+      const rad = (deg * Math.PI) / 180;
+      return { x: cx + radius * Math.cos(rad), y: cy + radius * Math.sin(rad) };
+    }
+
+    function arcPath(startDeg, endDeg, r) {
+      const s = polarToXY(startDeg, r);
+      const e = polarToXY(endDeg, r);
+      const large = (endDeg - startDeg) > 180 ? 1 : 0;
+      return `M ${s.x} ${s.y} A ${r} ${r} 0 ${large} 1 ${e.x} ${e.y}`;
+    }
+
+    const fillDeg = (score / 100) * totalDeg;
+    const fillEnd = startAngle + fillDeg;
+
+    const gradId = `grad-${wrapId}`;
+
+    wrap.innerHTML = `
+      <svg viewBox="0 0 180 120" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="${gradId}" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%"   stop-color="${color1}"/>
+            <stop offset="100%" stop-color="${color2}"/>
+          </linearGradient>
+        </defs>
+        <!-- Track -->
+        <path d="${arcPath(startAngle, endAngle, r)}"
+              fill="none" stroke="#EDE7D9" stroke-width="10" stroke-linecap="round"/>
+        <!-- Fill -->
+        <path id="arc-fill-${wrapId}"
+              d="${score > 0 ? arcPath(startAngle, fillEnd, r) : ''}"
+              fill="none" stroke="url(#${gradId})" stroke-width="10" stroke-linecap="round"
+              style="transition: d 1s ease;"/>
+        <!-- Score text -->
+        <text x="${cx}" y="${cy - 8}" text-anchor="middle" class="gauge-score">${score}</text>
+        <text x="${cx}" y="${cy + 10}" text-anchor="middle" class="gauge-label-text">out of 100</text>
+      </svg>`;
+  }
+
+  // ─── Band label ───────────────────────────────────────────────
+  function bandLabel(score, dimension) {
+    if (score < 34) return { cls: 'band-low',  label: `Low ${dimension}` };
+    if (score < 67) return { cls: 'band-mid',  label: `Moderate ${dimension}` };
+    return             { cls: 'band-high', label: `High ${dimension}` };
+  }
+
+  // ─── Interpretation ───────────────────────────────────────────
+  const INTERPRETATIONS = {
+    'LL': {
+      badge: '🌟 Social Butterfly',
+      text:  'You scored low on both shyness and introversion, suggesting you feel comfortable and energized in social settings. You likely find it easy to meet new people, enjoy being around others, and feel confident in conversations. For you, social situations are typically a source of energy rather than stress.'
+    },
+    'LH': {
+      badge: '🌿 Quiet Confident',
+      text:  'You scored low on shyness but high on introversion. This is a fascinating combination — you can engage comfortably with new people and don\'t feel significant social anxiety, yet you often prefer solitude or low-stimulation settings. You may enjoy meaningful one-on-one conversations over large gatherings, not out of fear, but out of preference.'
+    },
+    'HL': {
+      badge: '⚡ Anxious Extravert',
+      text:  'You scored high on shyness but low on introversion. While you crave social connection and may genuinely enjoy being around others, social situations can trigger anxiety or self-consciousness — especially with unfamiliar people. With time and comfort, this anxiety often fades as relationships develop.'
+    },
+    'HH': {
+      badge: '🌙 Reflective Homebody',
+      text:  'You scored high on both shyness and introversion. You likely prefer calm, familiar environments and may find social situations — especially with new people — draining or anxiety-provoking. This combination is common, and many people find their niche in smaller, trusted social circles where they feel most themselves.'
+    },
+  };
+
+  function getQuadrant(shy, intro) {
+    const s = shy >= 50 ? 'H' : 'L';
+    const i = intro >= 50 ? 'H' : 'L';
+    return s + i;
+  }
+
+  // ─── Show Results ─────────────────────────────────────────────
+  document.getElementById('show-results-btn').addEventListener('click', () => {
+    // Check all answered
+    let allAnswered = true;
+    ITEMS.forEach(item => {
+      if (!document.querySelector(`input[name="q${item.id}"]:checked`)) {
+        allAnswered = false;
+        const card = document.getElementById(`card-${item.id}`);
+        card.classList.add('unanswered-highlight');
+        setTimeout(() => card.classList.remove('unanswered-highlight'), 1500);
+      }
+    });
+
+    if (!allAnswered) {
+      document.getElementById('error-msg').style.display = 'block';
+      document.querySelector('.unanswered-highlight')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    document.getElementById('error-msg').style.display = 'none';
+
+    const shyRaw   = getRawScore('shy');
+    const introRaw = getRawScore('intro');
+    const shyScore   = toScale(shyRaw);
+    const introScore = toScale(introRaw);
+
+    // Build gauges
+    buildGauge('shy-gauge-wrap',   shyScore,   '#2A7A72', '#3EA89D');
+    buildGauge('intro-gauge-wrap', introScore, '#1C2B4A', '#2E4270');
+
+    // Animate bars (slight delay so display:block renders first)
+    const results = document.getElementById('results-section');
+    results.classList.add('visible');
+
+    setTimeout(() => {
+      document.getElementById('shy-bar').style.width   = shyScore + '%';
+      document.getElementById('intro-bar').style.width = introScore + '%';
+    }, 100);
+
+    // Band labels
+    const shyBand = bandLabel(shyScore, 'Shyness');
+    document.getElementById('shy-band').innerHTML =
+      `<span class="score-band ${shyBand.cls}">${shyBand.label}</span>`;
+
+    const introBand = bandLabel(introScore, 'Introversion');
+    document.getElementById('intro-band').innerHTML =
+      `<span class="score-band ${introBand.cls}">${introBand.label}</span>`;
+
+    // Interpretation
+    const q = getQuadrant(shyScore, introScore);
+    const interp = INTERPRETATIONS[q];
+    document.getElementById('quadrant-badge').textContent = interp.badge;
+    document.getElementById('interpretation-text').textContent = interp.text;
+
+    results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
+  // ─── Reset ────────────────────────────────────────────────────
+  document.getElementById('reset-btn').addEventListener('click', () => {
+    document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
+    document.querySelectorAll('.question-card').forEach(c => c.classList.remove('answered'));
+    document.getElementById('results-section').classList.remove('visible');
+    document.getElementById('progress-fill').style.width = '0%';
+    document.getElementById('progress-text').textContent = '0 / 12 answered';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+</script>
+</body>
+</html>
