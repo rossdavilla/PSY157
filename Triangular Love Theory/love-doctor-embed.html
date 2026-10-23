@@ -240,6 +240,12 @@
     .title { flex-direction: row; align-items: center; gap: clamp(16px, 3.4vw, 30px); }
     .title .plate { flex: 0 0 clamp(200px, 40%, 300px); }
     .tcopy { text-align: left; flex: 1 1 auto; }
+    /* The plate's height follows the column width, so a wider embed makes it
+       taller - the opposite of what a fixed-height frame needs. Cap it against
+       the frame instead; object-fit: cover crops the couple rather than pushing
+       the button out of view. */
+    .couchplate { max-height: calc(100vh - 146px); }
+    .title .plate { max-height: calc(100vh - 120px); }
   }
   @media (max-height: 520px) {
     .caseleft { gap: 7px; }
@@ -260,8 +266,12 @@
     .m-next { margin-top: 8px; min-height: 40px; }
     .m-done { margin-top: 5px; }
   }
+  @media (max-width: 619px) {
+    /* same reasoning as the wide layout: keep the plate from crowding out the form */
+    .couchplate { max-height: 40vh; }
+  }
   @media (max-width: 619px) and (max-height: 560px) {
-    .couchplate { aspect-ratio: 16 / 10; }
+    .couchplate { aspect-ratio: 16 / 10; max-height: 34vh; }
   }
   @media (max-width: 619px) {
     .tog .thint { display: none; }
