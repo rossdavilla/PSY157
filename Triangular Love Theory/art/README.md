@@ -1,6 +1,6 @@
 # art/
 
-Generated artwork for the two Top Hat embeds. The Love Mixer set is complete; the Dr. Love set is not drawn yet. **Every slot below is optional** — both pages
+Generated artwork for the two Top Hat embeds. The Dr. Love set is complete; the Love Mixer set needs regenerating in the simpler style. **Every slot below is optional** — both pages
 draw their own placeholder when a file is missing, and each real file takes over the moment
 it lands. No code change is needed when you add one; just commit it.
 
@@ -8,11 +8,11 @@ it lands. No code change is needed when you add one; just commit it.
 
 | Sheet | For | Style |
 | --- | --- | --- |
-| [love-mixer-image-prompts.md](love-mixer-image-prompts.md) | `love-mixer-embed.html` | Mary Blair — 6 colours, dark ground |
-| [dr-love-office-image-prompts.md](dr-love-office-image-prompts.md) | `love-doctor-embed.html` | Gemma Correll — 5 colours, white ground |
+| [love-mixer-image-prompts.md](love-mixer-image-prompts.md) | `love-mixer-embed.html` | Flat cartoon — 6 colours, bone ground |
+| [dr-love-office-image-prompts.md](dr-love-office-image-prompts.md) | `love-doctor-embed.html` | Flat cartoon — 5 colours, white ground |
 
-The two activities are deliberately in different styles. If you'd rather they matched, say
-so and I'll rewrite one sheet.
+Both activities now use the same flat cartoon style, told apart by their palettes: the
+Mixer keeps its dark ochre/red/cyan/olive set, the Doctor its red/teal/mustard.
 
 ## What goes here
 

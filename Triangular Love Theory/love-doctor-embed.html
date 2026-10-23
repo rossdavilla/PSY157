@@ -109,13 +109,13 @@
     color: #fff; border-radius: 13px;
     box-shadow: 5px 6px 14px rgba(26,26,26,0.34);
     padding: clamp(10px, 3%, 16px) clamp(12px, 3.4%, 18px);
-    display: flex; align-items: center;
+    display: flex; flex-direction: column;
     overflow-y: auto;
     opacity: 0; visibility: hidden; transform: translateY(8px) scale(.985);
     transition: opacity .3s ease, transform .3s ease, visibility 0s linear .3s;
   }
   .fileover.on { opacity: 1; visibility: visible; transform: none; transition: opacity .3s ease, transform .3s ease, visibility 0s; }
-  .fileover p { font-size: clamp(11.5px, 2.9vw, 13.5px); line-height: 1.55; }
+  .fileover p { font-size: 14px; line-height: 1.5; width: 100%; margin: auto 0; }
   .fileover::-webkit-scrollbar { width: 4px; }
   .fileover::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 2px; }
 
@@ -525,8 +525,43 @@
     return a;
   }
 
+  // Grow the case notes until they just fill the overlay. Stories differ in
+  // length and the box changes with the viewport, so this is measured, not guessed.
+  function fitStory() {
+    var box = $('fileover'), p = $('story');
+    if (!p.textContent) return;
+    // The overlay centres its text with flexbox, so box.scrollHeight never
+    // exceeds box.clientHeight - measure the paragraph against the box's
+    // content height instead.
+    var cs = getComputedStyle(box);
+    var avail = box.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - 2;
+    if (avail < 30) { setTimeout(fitStory, 80); return; }   // not laid out yet
+    var lo = 10, hi = 34;
+    for (var i = 0; i < 14; i++) {
+      var mid = (lo + hi) / 2;
+      p.style.fontSize = mid + 'px';
+      if (p.scrollHeight <= avail) lo = mid; else hi = mid;
+    }
+    p.style.fontSize = lo.toFixed(1) + 'px';
+    // Metrics can shift under us if the webfont lands mid-search, so verify
+    // the chosen size and step down until it genuinely fits.
+    for (var g = 0; g < 24 && p.scrollHeight > avail && lo > 10; g++) {
+      lo -= 0.5;
+      p.style.fontSize = lo.toFixed(1) + 'px';
+    }
+  }
+
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitStory);
+
+  var fitPending;
+  window.addEventListener('resize', function () {
+    clearTimeout(fitPending);
+    fitPending = setTimeout(fitStory, 120);
+  });
+
   function setStoryOpen(open) {
     $('fileover').classList.toggle('on', open);
+    if (open) requestAnimationFrame(fitStory);
     var b = $('analyzeBtn');
     b.classList.toggle('open', open);
     b.textContent = open ? '👀 See the couple' : '🔍 Analyze Couple';
@@ -540,6 +575,8 @@
     $('caseNames').textContent = c.names;
     $('caseNo').textContent    = c.caseNo;
     $('story').textContent     = c.story;
+    $('story').style.fontSize  = '';
+    fitStory();
     $('casecount').textContent = 'Patient ' + (answered + 1) + ' of ' + couples.length;
     plate('coupleImg', 'couplePh',
           ['art/couple-' + c.file + '.jpg', 'art/couple-' + c.file + '.png'],

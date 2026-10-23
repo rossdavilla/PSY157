@@ -1,155 +1,142 @@
-# Love Mixer — Mary Blair Art Prompts
+# Love Mixer — Art Prompts
 
-Prompts for generating the artwork the Love Mixer embed expects. Written for ChatGPT
-image generation; the Midjourney style reference that inspired them is noted inside.
+Eight images for the Love Mixer embed, one per love type. Written for ChatGPT image
+generation.
 
 Live copy: https://claude.ai/artifact/D9EJh6Q9qTem4pyF5JyLMZ
 
-## How to use these in ChatGPT
+## Read me first — this replaces the earlier set
 
-`Mary Blair --v 8.2` will not work here. `--v 8.2` is a Midjourney version flag; ChatGPT
-has no flags and will read it as literal text. The style has to be described in words
-instead, which is what the next section does.
+The first version of these prompts asked for dense, ornate, Mary Blair style paintings with
+decorative borders. They came out beautifully, but **the page shows them at about 200 pixels
+wide**, and at that size the detail turns to mush. These prompts are a rewrite for
+legibility.
 
-The method:
+Two things changed:
 
-1. Open one ChatGPT conversation and keep every image in it. The model carries style
-   across turns, so all eight pictures come out looking like a set. Starting a fresh chat
-   per image is the main cause of mismatched results.
-2. Paste the **house style block** once, as your first message, and let it answer.
-3. Then send the per-image line on its own. One image per message.
-4. Save the result under the exact filename listed with that prompt.
+1. **The art style is now the same simple cartoon style as Dr. Love's Office** — thick black
+   ink contours, flat colour, big round eyes, deadpan faces, lots of empty space. It reads
+   at a glance, which is the whole point.
+2. **Every composition is pared back to two figures and at most three symbols.** No
+   decorative borders, no background scenery, no crowds, no patterned frames. The border was
+   the single biggest source of visual noise and it is gone.
 
-If a picture drifts off-style, reply "same style as before, but ..." rather than
-re-pasting the whole block.
+**The palette stays as it was**, so the new art still belongs to the Mixer rather than the
+Doctor: deep near-black, dark ochre gold, hot vermilion red, muted teal-cyan, warm bone
+white, olive green.
 
-Two notes on naming the artist. Mary Blair died in 1978 and is normally fine to name, but
-ChatGPT sometimes declines artist names anyway. If that happens, drop her name and send
-the rest of the block — it is written to stand on its own, because it describes the look
-rather than relying on the name. "Mid-century Disney concept art" is a good substitute
-phrase.
+One consequence worth flagging. The Correll-ish cartoon style puts black ink on a pale
+ground, so these will come back as **bone-white pictures** rather than the dark ones you
+have now. On the Mixer's dark page they read as bright plates in a coloured frame, which
+looks deliberate — but it is a real change, so say the word if you'd rather keep a dark
+ground and have the linework in bone white instead.
 
-Ask for a **square frame** on all eight so they drop into the page at one size.
+**You will need to regenerate all eight.** The current files still work until you replace
+them.
 
-## The house style block
+## The style brief
 
 Send this once, first, in the chat you will generate all eight images in.
 
-> For this whole conversation I want every image in one consistent art style, inspired by
-> the mid-century concept art of Mary Blair.
+> I need a set of eight cartoon illustrations that all look like they came from the same
+> sketchbook. Here is the style, and it applies to every image I ask for in this
+> conversation.
 >
-> The style: flat, graphic, painterly shapes with bold dark outlines. Strong geometric
-> construction — figures and objects simplified into triangles, arcs and wedges. Richly
-> textured brushwork over flat colour. Dense decorative motifs, especially stylised
-> flowers, leaves and small animals. Theatrical, storybook staging on a dark ground, with
-> ornate decorative framing around the edges. High contrast, vivid saturated colour,
-> dreamy and warm. Deliberately naive and childlike, never photorealistic, no 3D
-> rendering, no gradients or lens effects.
+> Spare, graphic cartoon drawing. Everything built from thick, confident black ink contours
+> of even weight, like a felt-tip pen. Flat areas of colour inside the lines, no shading, no
+> gradients, no texture, no crosshatching. Figures are angular and simplified, slightly
+> awkward, with oversized round eyes, tiny dot pupils and deadpan, under-reacting
+> expressions. Dry and funny rather than cute.
 >
-> Palette, in roughly this proportion: deep near-black (about a third of the image), dark
-> ochre gold, hot vermilion red, muted teal-cyan, warm bone white, and olive green. Keep
-> to these six.
+> **Keep every picture extremely simple.** These are displayed very small, about the size of
+> a postage stamp, so they must read instantly. Two figures and at most three simple symbols
+> per image. Large shapes, generous empty space around everything. No decorative borders, no
+> patterned frames, no background scenery, no crowds, no small fiddly detail anywhere.
 >
-> Every image: square, flat 2D illustration, no text, no words, no lettering anywhere in
-> the picture, no watermark, no border outside the artwork itself.
+> Use exactly these six colours and nothing else:
+> — warm bone white #F2E5CD for the background and most interior shapes
+> — deep near-black #17121F for every outline and all linework
+> — hot vermilion red #E0462F
+> — muted teal-cyan #4A9FB0
+> — dark ochre gold #D4972E
+> — olive green #7F8C3C
 >
-> Reply "ready" and then I will send each image one at a time.
+> Every image: square, flat 2D cartoon, plain bone-white background, no text, no words, no
+> lettering, no signature, no watermark, no border or frame drawn around the picture.
+>
+> Please confirm you have this, then I will send the images one at a time.
 
-The palette comes from the Midjourney style reference: black 34%, dark ochre 18%, red 15%,
-muted cyan 14%, bone white 11%, olive 8%. Those same six colours are what the embed page is
-built in, so the generated images will sit inside it without clashing.
+## The eight images
 
-The "no text, no lettering" line matters — image models like to write words into
-illustrations, and the page puts its own captions over the art.
-
-## The eight love-type images
-
-Send these one at a time, after the house style block. Each one ends by naming the motifs
-that should appear in the decorative border — those are the same ingredients that go into
-the pot in the activity, so the picture ties back to what the student just mixed.
+One per message, after the style brief. Each one names its figures and its symbols, and
+nothing else should appear.
 
 **1. `non-love.jpg`**
 
-> Two people sitting on the same bench in a waiting room, turned away from each other, a
-> wide cold gap between them. Both stare straight ahead. Neither has noticed the other.
-> Flat grey-olive and bone tones, almost no warm colour, bare geometric plants in the
-> background. Decorative border of empty bowls and closed doors.
+> Two figures sitting on a plain bench, far apart, both facing forward, blank neutral
+> expressions, not looking at each other. One in olive, one in teal. No symbols at all. Lots
+> of empty space between and around them.
 
 **2. `infatuation.jpg`**
 
-> One figure in a crowded room gazing across at another, utterly transfixed, hot red hearts
-> and stars spiralling out of their chest and filling the air around them. The other person
-> is turned away and has not noticed. Blazing vermilion and dark ochre, the dreamer lit,
-> everyone else in silhouette. Decorative border of peaches and eggplants.
+> Two figures. The left one leans eagerly toward the right one with enormous shining eyes
+> and a huge red heart floating above their head. The right figure faces away, arms folded,
+> completely unaware. One heart only.
 
 **3. `liking.jpg`**
 
-> Two friends sitting cross-legged facing each other, mid-conversation, both laughing,
-> teacups and open books between them. Easy and warm but with no romance — no hearts.
-> Muted teal-cyan and bone, soft ochre light. Decorative border of speech bubbles and
-> teapots.
+> Two figures sitting side by side, both laughing, turned slightly toward each other. Two
+> teal speech bubbles above them, empty, no writing inside. Warm and easy. No hearts.
 
 **4. `empty-love.jpg`**
 
-> An older couple at opposite ends of a long formal dinner table, both upright and silent,
-> a single candle between them. The room is grand and ornate and cold. Muted cyan and grey
-> dominate, the gold of their wedding rings the only warm note. Decorative border of
-> wedding rings and empty chairs.
+> Two figures standing far apart, both upright and facing forward with flat expressions. One
+> large ochre wedding ring floats in the gap between them. Muted and still. No hearts, no
+> speech bubbles.
 
 **5. `romantic-love.jpg`**
 
-> Two lovers entwined under a canopy of huge stylised flowers and stars, deep in each
-> other, surrounded by hearts. Behind them an open road runs off to a horizon with no house
-> on it. Hot pink, vermilion and deep night blue. Decorative border of peaches, hearts and
-> blossoms.
+> Two figures embracing, turned fully toward each other, eyes closed, clearly delighted.
+> Three red hearts floating around them. Nothing else — no house, no ring.
 
 **6. `companionate-love.jpg`**
 
-> An elderly couple holding hands on a garden bench, calm and settled, a small cottage
-> behind them with smoke curling from the chimney. Deep affection, no fire — no hearts or
-> flames. Olive green, bone white and soft ochre. Decorative border of houses, speech
-> bubbles and garden flowers.
+> Two older figures standing side by side holding hands, calm and content, grey hair. One
+> small olive house behind them. No hearts.
 
 **7. `fatuous-love.jpg`**
 
-> A couple rushing headlong toward a wedding arch in a whirlwind, confetti, rings and
-> blossoms flying past in streaks of motion, everything tilted and off balance. They are
-> grinning but not looking at each other. Vermilion and bright ochre against black.
-> Decorative border of wedding rings and peaches, tumbling and scattered.
+> Two figures running fast to the right, leaning forward, grinning but not looking at each
+> other. One ochre ring and one red heart tumbling in the air behind them, plus a few simple
+> black speed lines. Tilted, off balance.
 
 **8. `consummate-love.jpg`**
 
-> A couple embracing at the centre of a warm radiant composition: a hearth fire behind
-> them, a small house, blossoming trees, hearts and wedding rings woven into a symmetrical
-> decorative frame all around. Every element in balance. Rich gold, vermilion, teal and
-> bone, the most saturated of the set. Decorative border combining peaches, hearts, speech
-> bubbles, rings and houses.
+> Two figures embracing in the centre, both smiling warmly. Three symbols arranged simply
+> and evenly around them: one red heart, one ochre ring, one olive house. Balanced and
+> settled. The most colourful of the set, but still simple.
 
-## One optional extra, and what not to replace
+## The kitchen backdrop
 
-**Do not replace the jars, ingredients, pot, spoon or hand.** Those are drawn as SVG inside
-the page, not as image files, because they have to animate — the lids tilt open, the hand
-reaches in and carries two ingredients across, the spoon stirs, the pot tips and pours. A
-flat picture cannot do any of that, so dropping images in would break the animation rather
-than improve it. They are already drawn in the same six colours as the prompts above, so
-they match the generated art.
-
-**The one thing worth generating is a kitchen backdrop.** It sits behind the jars and pot
-as a CSS background and needs no code changes beyond one line.
+`kitchen.jpg` already exists and is wired in behind the jars and pot. It sits under a heavy
+dark gradient so it reads as texture rather than a picture, which means the style change
+above does not really touch it. Leave it unless you want to redo it, in which case:
 
 > A plain kitchen wall and countertop seen straight on, empty, no objects on the counter.
 > Mostly dark near-black wall with a band of dark ochre counter across the lower third.
-> Sparse decorative motifs — a few stylised leaves and small geometric tiles. Very low
-> contrast and quiet, because text and glass jars will sit on top of it. Wide 16:9
-> landscape.
+> A few simple flat shapes only. Very low contrast and quiet, because text and glass jars
+> sit on top of it. Wide 16:9 landscape.
 
-Save it as `kitchen.jpg`. Tell me when it exists and I will wire it in — it needs a
-one-line CSS change, and the dark overlay on top may need adjusting so the jars stay
-readable.
+## What not to replace
+
+**The jars, ingredients, pot, spoon and hand stay as SVG.** They are drawn inside the page,
+not as image files, because they animate — lids tilt open, the hand reaches in and carries
+two ingredients across, the spoon stirs, the pot tips and pours. A flat picture cannot do
+any of that.
 
 ## Where the files go
 
-Put every image in `PSY157/Triangular Love Theory/art/` — this folder.
+This folder, `PSY157/Triangular Love Theory/art/`.
 
 | File | What it is |
 | --- | --- |
@@ -161,17 +148,13 @@ Put every image in `PSY157/Triangular Love Theory/art/` — this folder.
 | `companionate-love.jpg` | Result art, square |
 | `fatuous-love.jpg` | Result art, square |
 | `consummate-love.jpg` | Result art, square |
-| `kitchen.jpg` | Optional backdrop, 16:9 |
+| `kitchen.jpg` | Backdrop, 16:9, already done |
 
-The filenames are exact — the page builds the path from the love type, so a typo means that
-one type silently falls back.
+**Format and size.** Square, around 800×800, saved as JPEG. ChatGPT returns PNGs of roughly
+1.4 MB each; re-saved as JPEG at quality 88 the same picture is around 200 KB with no
+visible difference at display size. The page looks for `.jpg` first and `.png` second, so
+either works — drop the PNGs straight in if that's easier and I'll convert them.
 
-**Format and size.** Square, around 800×800. **Save as JPEG, not PNG.** The page displays them between 132 and
-200 pixels wide, so anything larger is wasted download; anything under 400×400 will look
-soft on a high-density screen. ChatGPT hands these back as PNG, which runs about 1.4 MB each for painterly art like this — roughly ten times what the same picture needs. Re-save each one as JPEG at quality 82 before committing. The page looks for `.jpg` first and `.png` second, so either works, but the JPEGs load about ten times faster on a phone.
-
-**You can add them one at a time.** The page already draws its own placeholder for every
-type: a decorative medallion in that type's colour with the relevant ingredients arranged
-inside. When a real file is present it is used; when it is missing the placeholder stays. So
-nothing breaks while the set is half finished, and there is no code change needed when a
-file lands — just commit it.
+**The names are exact** — the page builds the path from the love type, so a typo means that
+one type silently falls back to its drawn placeholder. You can replace them one at a time;
+nothing breaks while the set is half old and half new.
