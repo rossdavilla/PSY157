@@ -1,9 +1,16 @@
 # Dr. Love's Office — Art Bot Instructions
 
-Nine images for the Love Doctor embed: one title card and eight couples. Written to be
+Nine images for the Love Doctor activities: one title card and eight couples. Written to be
 handed to a Claude bot driving ChatGPT in Chrome — it can follow this top to bottom.
 
 Live copy: https://claude.ai/artifact/RW48qGzGpdKannWVZNKHsr
+
+**Two pages share this artwork, so generate all nine whichever one you are working on.**
+`love-doctor-embed.html` uses every image. `love-doctor-embed2.html` — the shorter version,
+with the live diagnosis under the button and a review sheet at the end — dropped Non-Love as
+a case, so it never shows `couple-001.jpg`, and it draws four of the remaining seven couples
+at random each round. Neither page needs anything beyond these nine. See **Where each image
+is used** below.
 
 ## Read me first
 
@@ -176,13 +183,17 @@ eight couples looking alike.
 These drawings carry appearance and posture only. **No floating hearts, no visible wedding
 rings, no symbols of any kind** — the student is meant to diagnose from the written case, and
 a picture that gives away the answer turns the activity into a spotting game. Posture is
-fair; props that hint at the diagnosis are not.
+fair; props that hint at the diagnosis are not. This holds for both pages: the first lays a
+written case note over the drawing, the second the couple's own spoken dialogue, and either
+way the picture is what the student looks at while deciding.
 
 **And no objects on the floor.** Whatever you let into one drawing tends to reappear in
 the next — a bag drawn beside the couch once will follow you through the whole set. The
 floor stays empty in all eight.
 
-**1. `couple-001.jpg`** — two colleagues
+**1. `couple-001.jpg`** — two colleagues *(first page only; `love-doctor-embed2.html` has no
+Non-Love case, so this one never appears there — but draw it, because the first page still
+shows it)*
 
 > Same style, same red couch, same office. A completely new couple — different hair, builds
 > and faces from anyone drawn so far.
@@ -290,6 +301,22 @@ floor stays empty in all eight.
 > They sit close and turned slightly toward each other, relaxed and warm, both smiling
 > genuinely. Comfortable in their own skin and in the room.
 
+## Where each image is used
+
+Two pages draw on this folder. Nothing about the artwork itself differs between them — the
+second page simply uses less of it.
+
+| File | `love-doctor-embed.html` | `love-doctor-embed2.html` |
+| --- | --- | --- |
+| `dr-love-title.jpg` | Title screen | Title screen |
+| `couple-001.jpg` — Marcus & Jennifer, Non-Love | One of the eight cases | **Not used** |
+| `couple-002.jpg` … `couple-008.jpg` | The other seven cases | Four of these seven, picked at random each round |
+
+Two things follow from that right-hand column. **Every one of the seven has to be finished**,
+because a random four of them come up each round — there is no rarely-seen slot to leave for
+later. And the second page's closing review sheet needs no artwork at all: it is drawn in the
+page as small love triangles, one per type, not as pictures.
+
 ## The run sheet
 
 For the bot, in order:
@@ -328,9 +355,9 @@ For the bot, in order:
 | It adds hearts, rings or symbols | Regenerate: "no symbols, no hearts, no props — just the two people on the couch" |
 | Text appears in the picture | Regenerate: "no text or lettering of any kind anywhere in the image" |
 
-**Format. Save as JPEG, not PNG.** Title card 3:2, couples 4:3, around 1200px on the long edge. ChatGPT returns PNGs of roughly 1.4 MB each for this kind of art; re-saved as JPEG at quality 82 the same picture is about 200 KB with no visible difference at the size the page shows it. The page looks for `.jpg` first and `.png` second, so either works — but on a phone the JPEGs load about ten times faster.
+**Format. Save as JPEG, not PNG.** Title card 3:2, couples 4:3, around 1200px on the long edge. ChatGPT returns PNGs of roughly 1.4 MB each for this kind of art; re-saved as JPEG at quality 82 the same picture is about 200 KB with no visible difference at the size the page shows it. Both pages look for `.jpg` first and `.png` second, so either works — but on a phone the JPEGs load about ten times faster.
 
 **Nothing breaks while the set is incomplete.** Every slot already has a placeholder drawn
-into the page in these same five colours, and each real file replaces its placeholder the
+into both pages in these same five colours, and each real file replaces its placeholder the
 moment it exists. Files can land one at a time, in any order, with no code change — so you
 can redo a single couple that came out wrong without touching the rest.

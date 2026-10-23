@@ -255,6 +255,36 @@
   .tally { font-size: var(--body); font-weight: 700; }
   .sb p { font-size: var(--small); color: #4a4a4a; line-height: 1.6; max-width: 370px; }
 
+  /* ── COMPLETION CODE ── */
+  .codebox {
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    background: var(--paper2); border: 3px solid var(--ink); border-radius: 13px;
+    padding: clamp(6px,1.4vh,10px) clamp(12px,3vw,18px);
+    box-shadow: 4px 5px 0 rgba(26,26,26,0.14);
+  }
+  .code-label { font-size: var(--tiny); font-weight: 700; letter-spacing: 1.8px; text-transform: uppercase; color: var(--grey); }
+  .code-row { display: flex; align-items: center; gap: clamp(8px,2vw,14px); }
+  .code {
+    font-weight: 900; font-size: clamp(21px, 6.2vw, 33px); line-height: 1.15;
+    letter-spacing: clamp(2px, 0.8vw, 5px); padding-left: clamp(2px, 0.8vw, 5px);
+    font-variant-numeric: tabular-nums;
+    -webkit-user-select: all; user-select: all;
+  }
+  .copybtn {
+    border: 2.5px solid var(--ink); border-radius: 9px; cursor: pointer;
+    background: var(--teal); color: #fff; white-space: nowrap;
+    font-weight: 900; font-size: var(--small); letter-spacing: 1.2px; text-transform: uppercase;
+    padding: 6px 13px; box-shadow: 3px 4px 0 var(--ink);
+    transition: transform .12s, box-shadow .12s, background .18s;
+  }
+  .copybtn:hover { transform: translate(-1px,-1px); box-shadow: 4px 5px 0 var(--ink); }
+  .copybtn:active { transform: translate(2px,3px); box-shadow: 1px 1px 0 var(--ink); }
+  .copybtn.done { background: var(--mustard); color: var(--ink); }
+  .code-hint { font-size: var(--tiny); font-weight: 700; color: var(--grey); }
+  /* The review is the last screen, so the code is repeated at the foot of it -
+     otherwise a student who taps through before copying can never get it back. */
+  .rv-codebox { margin-top: clamp(9px,1.9vh,14px); align-self: center; }
+
   /* ── REVIEW SHEET (scrolls; this screen is meant to be taller than the frame) ── */
   .rv { max-width: 640px; padding-bottom: clamp(8px,1.8vh,16px); }
   .rv-head { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 2px; margin-bottom: clamp(9px,1.9vh,15px); }
@@ -262,6 +292,7 @@
   .rv-head h1 { font-size: clamp(19px, 5vw, 27px); font-weight: 900; letter-spacing: -.5px; line-height: 1.1; }
   .rv-key { font-size: var(--small); color: #4a4a4a; line-height: 1.5; max-width: 440px; margin-top: 3px; }
   .rv-key b { font-weight: 900; }
+  .rv { display: flex; flex-direction: column; }
   .rv-list { display: flex; flex-direction: column; gap: clamp(7px,1.5vh,11px); }
   .rv-row {
     display: flex; align-items: center; gap: clamp(9px,2.3vw,15px);
@@ -297,8 +328,19 @@
     .analyze { min-height: 38px; }
     .livetype { margin-top: 6px; }
   }
+  @media (max-height: 470px) {
+    /* The completion code is the one thing a student must leave with, so the
+       takings shrink to make room for it rather than the other way round. */
+    .final { font-size: clamp(30px, 8.5vw, 48px); padding: 1px 16px; }
+    .sb { gap: clamp(4px,1vh,8px); }
+    .sb p { font-size: var(--tiny); line-height: 1.45; }
+  }
   @media (max-height: 430px) {
     :root { --body: clamp(13px, 3.3vw, 15px); --h1: clamp(18px, 4.4vw, 24px); }
+    .final { font-size: clamp(26px, 7vw, 38px); }
+    .sb p { display: none; }
+    .codebox { gap: 1px; padding: 5px clamp(10px,2.6vw,15px); }
+    .code { font-size: clamp(19px, 5.4vw, 27px); }
     .tog .thint { display: none; }
     .tog { min-height: 40px; }
     .togs { gap: 5px; margin-top: 7px; margin-bottom: 8px; }
@@ -410,6 +452,14 @@
         <h1>Session complete</h1>
         <div class="final" id="finalAmt">$0</div>
         <div class="tally" id="finalTally"></div>
+        <div class="codebox">
+          <span class="code-label">Your completion code</span>
+          <div class="code-row">
+            <span class="code js-code">······</span>
+            <button class="copybtn js-copy" type="button">Copy Code</button>
+          </div>
+          <span class="code-hint">Paste this into Top Hat</span>
+        </div>
         <p>Every couple you saw is one of Sternberg's types of love — each one a different combination of passion, intimacy and commitment.</p>
         <button class="btn mustard" id="revealBtn" style="max-width:290px;margin-top:clamp(5px,1.2vh,10px)">Reveal All Love Types</button>
       </div>
@@ -427,6 +477,13 @@
             <b style="color:#a9770f">C</b>&thinsp;ommitment.</p>
         </div>
         <div class="rv-list" id="rvList"></div>
+        <div class="codebox rv-codebox">
+          <span class="code-label">Your completion code</span>
+          <div class="code-row">
+            <span class="code js-code">······</span>
+            <button class="copybtn js-copy" type="button">Copy Code</button>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -538,6 +595,7 @@
 
   var FEE = 100, ROUNDS = 4;
   var order = [], idx = 0, earnings = 0, right = 0, answered = 0, analysed = false;
+  var sessionCode = '', copyTimer;
   var pick = { passion:false, intimacy:false, commitment:false };
 
   function keyOf(c) { return c.key; }
@@ -813,10 +871,62 @@
     $('overlay').classList.add('on');
   }
 
+  // ##X### - the third digit is how many they got right, the other five are
+  // noise, so the score is not readable over a shoulder but is trivial to pull
+  // out of the gradebook column afterwards.
+  function makeCode(n) {
+    var d = function () { return Math.floor(Math.random() * 10); };
+    return '' + d() + d() + n + d() + d() + d();
+  }
+
+  function paintCode() {
+    document.querySelectorAll('.js-code').forEach(function (el) { el.textContent = sessionCode; });
+    document.querySelectorAll('.js-copy').forEach(function (b) {
+      b.textContent = 'Copy Code'; b.classList.remove('done');
+    });
+    clearTimeout(copyTimer);
+  }
+
+  function copyCode(btn) {
+    function done() {
+      btn.textContent = 'Copied!';
+      btn.classList.add('done');
+      clearTimeout(copyTimer);
+      copyTimer = setTimeout(function () {
+        btn.textContent = 'Copy Code'; btn.classList.remove('done');
+      }, 1800);
+    }
+    // The clipboard API needs a secure context, which the embed has inside Top
+    // Hat but a local file:// preview does not - fall back to a hidden field.
+    function legacy() {
+      var ta = document.createElement('textarea');
+      ta.value = sessionCode;
+      ta.setAttribute('readonly', '');
+      ta.style.cssText = 'position:absolute;left:-9999px;top:0';
+      document.body.appendChild(ta);
+      ta.select();
+      var ok = false;
+      try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+      ta.remove();
+      if (ok) done(); else btn.textContent = 'Select it';
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(sessionCode).then(done, legacy);
+    } else {
+      legacy();
+    }
+  }
+
+  document.querySelectorAll('.js-copy').forEach(function (b) {
+    b.addEventListener('click', function () { copyCode(b); });
+  });
+
   function score() {
     $('overlay').classList.remove('on');
     $('finalAmt').textContent = '$' + earnings.toLocaleString();
     $('finalTally').textContent = right + ' of ' + answered + ' diagnosed correctly';
+    sessionCode = makeCode(right);
+    paintCode();
     show('s-score');
   }
 
