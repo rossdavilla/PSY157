@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Love Doctor — Embed</title>
+<link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet">
+<style>
+  /* ── Gemma Correll palette: paper · ink · vivid red · teal · mustard ── */
+  :root {
+    --paper:   #faf7f2;
+    --paper2:  #f0ebe2;
+    --ink:     #1a1a1a;
+    --red:     #ee3b2e;
+    --teal:    #2f9c95;
+    --mustard: #f2b134;
+    --gold-dk: #a9770f;   /* mustard, dark enough to read as text on paper */
+    --grey:    #8d8a85;
+
+    --pad:   clamp(12px, 3vw, 24px);
+    --h1:    clamp(21px, 5.4vw, 31px);
+    --body:  clamp(14px, 3.7vw, 16.5px);
+    --small: clamp(11px, 2.9vw, 13px);
+    --tiny:  clamp(9.5px, 2.4vw, 11px);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { height:100%; overflow:hidden; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Lato', Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -webkit-text-size-adjust: 100%;
+  }
+  button { font-family: inherit; }
+
+  .app { position: fixed; inset: 0; display: flex; flex-direction: column; overflow: hidden; }
+
+  /* ── TOP BAR ── */
+  .topbar {
+    flex: 0 0 auto; height: clamp(38px, 7.6vh, 48px);
+    display: flex; align-items: center; gap: 10px;
+    padding: 0 var(--pad);
+    border-bottom: 3px solid var(--ink);
+    background: var(--paper);
+    position: relative; z-index: 6;
+  }
+  .brand { font-weight: 900; font-size: clamp(13px, 3.4vw, 16px); letter-spacing: -.2px; white-space: nowrap; }
+  .brand em { font-style: normal; color: var(--red); }
+  .spacer { flex: 1 1 auto; }
+  .casecount { font-size: var(--tiny); font-weight: 700; letter-spacing: 1.6px; text-transform: uppercase; color: var(--grey); white-space: nowrap; }
+  .money {
+    font-weight: 900; font-size: clamp(14px, 3.8vw, 18px); color: var(--ink);
+    background: var(--mustard); border: 2.5px solid var(--ink); border-radius: 20px;
+    padding: 1px 11px; white-space: nowrap;
+  }
+  .money.flash { animation: pop .6s ease; }
+  @keyframes pop { 0%,100%{transform:scale(1)} 45%{transform:scale(1.16)} }
+
+  /* ── SCREENS ── */
+  .stack { position: relative; flex: 1 1 auto; min-height: 0; }
+  .screen {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+    padding: clamp(10px, 2.2vh, 20px) var(--pad);
+    overflow-y: auto; overscroll-behavior: contain;
+    opacity: 0; visibility: hidden; transform: translateY(12px);
+    transition: opacity .19s ease, transform .19s ease, visibility 0s linear .19s;
+  }
+  .screen.on {
+    opacity: 1; visibility: visible; transform: none;
+    transition: opacity .28s ease .15s, transform .28s ease .15s, visibility 0s;
+  }
+  .screen::-webkit-scrollbar { width: 5px; }
+  .screen::-webkit-scrollbar-thumb { background: rgba(26,26,26,0.25); border-radius: 3px; }
+  .inner { width: 100%; max-width: 560px; margin: auto 0; }
+
+  /* ── ART BOXES ── */
+  .plate {
+    width: 100%; position: relative; overflow: hidden;
+    border: 3px solid var(--ink); border-radius: 14px;
+    background: #fff;
+    box-shadow: 5px 6px 0 rgba(26,26,26,0.14);
+  }
+  .plate > img, .plate > .ph { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .plate > img { object-fit: cover; }
+  .plate [hidden] { display: none !important; }
+
+  /* ── TITLE SCREEN ── */
+  .title { display: flex; flex-direction: column; align-items: center; gap: clamp(10px, 2.2vh, 18px); }
+  .title .plate { aspect-ratio: 3 / 2; max-width: 430px; }
+  .tcopy { text-align: center; }
+  .tcopy h1 { font-size: var(--h1); font-weight: 900; line-height: 1.05; letter-spacing: -.5px; }
+  .tcopy h1 em { font-style: normal; color: var(--red); }
+  .tcopy p { margin-top: clamp(6px,1.4vh,11px); font-size: var(--body); line-height: 1.55; color: #3a3a3a; }
+  .tcopy p b { background: var(--mustard); padding: 0 4px; border-radius: 3px; }
+
+  /* ── CASE SCREEN ── */
+  .case { display: flex; flex-direction: column; gap: clamp(10px, 2vh, 16px); width: 100%; }
+  .caseleft { display: flex; flex-direction: column; gap: clamp(7px,1.4vh,11px); min-width: 0; }
+  .names { font-size: clamp(17px, 4.6vw, 24px); font-weight: 900; line-height: 1.1; letter-spacing: -.3px; }
+  .couchplate { aspect-ratio: 4 / 3; }
+
+  /* what the couple says, revealed over their picture */
+  .fileover {
+    position: absolute; inset: clamp(8px, 2.4%, 14px);
+    background: rgba(0,0,0,0.9);
+    color: #fff; border-radius: 13px;
+    box-shadow: 5px 6px 14px rgba(26,26,26,0.34);
+    padding: clamp(10px, 3%, 16px) clamp(12px, 3.4%, 18px);
+    display: flex; flex-direction: column;
+    overflow-y: auto;
+    opacity: 0; visibility: hidden; transform: translateY(8px) scale(.985);
+    transition: opacity .3s ease, transform .3s ease, visibility 0s linear .3s;
+  }
+  .fileover.on { opacity: 1; visibility: visible; transform: none; transition: opacity .3s ease, transform .3s ease, visibility 0s; }
+  .fileover::-webkit-scrollbar { width: 4px; }
+  .fileover::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 2px; }
+  /* auto-margins (not align-items) centre the transcript, so it can still scroll when long */
+  .dlg { width: 100%; margin: auto 0; font-size: 14px; }
+  .dlg p { line-height: 1.45; }
+  .dlg p + p { margin-top: .74em; }
+  .dlg .who { font-weight: 900; }
+  .dlg p:nth-child(odd)  .who { color: #f2b134; }
+  .dlg p:nth-child(even) .who { color: #6fd8ce; }
+
+  .analyze {
+    width: 100%; min-height: clamp(40px, 7.2vh, 48px);
+    background: var(--ink); color: #fff;
+    border: 3px solid var(--ink); border-radius: 11px; cursor: pointer;
+    font-weight: 900; font-size: clamp(12px, 3.3vw, 14.5px);
+    letter-spacing: 1.6px; text-transform: uppercase;
+    box-shadow: 4px 5px 0 rgba(26,26,26,0.18);
+    transition: transform .12s, box-shadow .12s, background .16s;
+  }
+  .analyze:hover { transform: translate(-1px,-1px); box-shadow: 5px 6px 0 rgba(26,26,26,0.22); }
+  .analyze.open { background: var(--paper); color: var(--ink); }
+
+  /* ── THE FORM ── */
+  .form { min-width: 0; }
+  .form-q { font-size: clamp(14px, 3.8vw, 17px); font-weight: 900; letter-spacing: -.2px; }
+  .form-sub { font-size: var(--tiny); font-weight: 700; letter-spacing: 1.6px; text-transform: uppercase; color: var(--grey); margin-top: 2px; }
+  .togs { display: flex; flex-direction: column; gap: clamp(6px,1.2vh,9px); margin-top: clamp(7px,1.5vh,12px); margin-bottom: clamp(8px,1.6vh,13px); }
+  .tog {
+    display: flex; align-items: center; gap: 9px;
+    width: 100%; text-align: left; cursor: pointer;
+    min-height: clamp(44px, 8vh, 56px); padding: 7px 11px;
+    border: 3px solid var(--ink); border-radius: 11px;
+    background: #fff; color: var(--ink);
+    box-shadow: 3px 4px 0 rgba(26,26,26,0.13);
+    transition: background .16s, transform .12s, box-shadow .12s;
+  }
+  .tog:hover { transform: translate(-1px,-1px); box-shadow: 4px 5px 0 rgba(26,26,26,0.17); }
+  .tog .box {
+    flex: 0 0 auto; width: 20px; height: 20px; border-radius: 6px;
+    border: 2.5px solid var(--ink); display: grid; place-items: center;
+    font-size: 12px; font-weight: 900; line-height: 1; color: #fff;
+    transition: background .16s;
+  }
+  .tog .box::after { content: '✓'; opacity: 0; transition: opacity .16s; }
+  .tog .icon { font-size: clamp(14px, 3.8vw, 18px); flex: 0 0 auto; line-height: 1; }
+  .tog .tname { display: block; font-weight: 900; font-size: clamp(13px, 3.5vw, 15.5px); line-height: 1.15; }
+  .tog .thint { display: block; font-size: var(--tiny); color: #5d5a55; line-height: 1.3; margin-top: 1px; }
+  .tog.on { background: var(--c-soft); }
+  .tog.on .box { background: var(--c); }
+  .tog.on .box::after { opacity: 1; }
+
+  /* ── LIVE DIAGNOSIS, under the button ── */
+  .livetype {
+    margin-top: clamp(7px,1.4vh,11px); text-align: center;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+  }
+  .lt-label { font-size: var(--tiny); font-weight: 700; letter-spacing: 1.7px; text-transform: uppercase; color: var(--grey); }
+  .lt-name {
+    display: inline-block; max-width: 100%;
+    padding: 2px 13px; border-radius: 18px; border: 2.5px solid var(--ink);
+    font-weight: 900; font-size: clamp(12.5px, 3.4vw, 15.5px); line-height: 1.45;
+    background: var(--ink); color: #fff;
+    transition: background .18s ease, color .18s ease, border-color .18s ease;
+  }
+  .livetype.empty .lt-name {
+    background: #fff; color: var(--grey); border-color: #c9c5be;
+    font-weight: 700; font-size: var(--small);
+  }
+
+  .btn {
+    width: 100%; min-height: clamp(44px, 8vh, 54px);
+    border: 3px solid var(--ink); border-radius: 11px; cursor: pointer;
+    background: var(--red); color: #fff;
+    font-weight: 900; font-size: clamp(12.5px, 3.4vw, 15px);
+    letter-spacing: 1.8px; text-transform: uppercase;
+    box-shadow: 4px 5px 0 var(--ink);
+    transition: transform .12s, box-shadow .12s, filter .2s;
+  }
+  .btn:hover:not(:disabled) { transform: translate(-1px,-1px); box-shadow: 5px 6px 0 var(--ink); }
+  .btn:active:not(:disabled) { transform: translate(2px,3px); box-shadow: 1px 1px 0 var(--ink); }
+  .btn:disabled { background: #d8d4cd; color: #8d8a85; box-shadow: 4px 5px 0 #b4b0a9; border-color: #b4b0a9; cursor: default; }
+  .btn.mustard { background: var(--mustard); color: var(--ink); }
+
+  /* ── VERDICT ── */
+  .overlay {
+    position: absolute; inset: 0; z-index: 9;
+    background: rgba(26,26,26,0.62);
+    display: flex; align-items: center; justify-content: center;
+    padding: clamp(10px, 2.2vh, 20px) var(--pad);
+    overflow-y: auto;
+    opacity: 0; visibility: hidden; transition: opacity .2s, visibility 0s linear .2s;
+  }
+  .overlay.on { opacity: 1; visibility: visible; transition: opacity .2s, visibility 0s; }
+  .modal {
+    width: 100%; max-width: 440px; margin: auto 0;
+    background: var(--paper); color: var(--ink);
+    border: 3px solid var(--ink); border-radius: 15px;
+    box-shadow: 7px 9px 0 rgba(26,26,26,0.3);
+    padding: clamp(13px,3vw,20px) clamp(15px,3.4vw,24px) clamp(14px,3vw,20px);
+    text-align: center;
+    transform: scale(.95); transition: transform .22s;
+  }
+  .overlay.on .modal { transform: scale(1); }
+  /* The type itself is the headline. Its swatch carries the colour, because
+     several of the type colours are far too pale to read as text. */
+  .m-type-big {
+    font-size: clamp(21px, 5.9vw, 31px); font-weight: 900; line-height: 1.08;
+    letter-spacing: -.6px;
+    display: flex; align-items: center; justify-content: center; gap: .36em; flex-wrap: wrap;
+  }
+  .m-rule {
+    width: clamp(52px, 13vw, 76px); height: 7px; border-radius: 5px;
+    border: 2.5px solid var(--ink); margin: clamp(5px,1vh,8px) auto 0;
+  }
+  .m-verdict { font-size: clamp(14px, 3.9vw, 17.5px); font-weight: 900; margin-top: clamp(5px,1.1vh,9px); line-height: 1.2; }
+  .m-verdict.ok { color: var(--teal); }
+  .m-verdict.no { color: var(--red); }
+  .m-fee { font-size: var(--small); font-weight: 700; margin-top: 2px; }
+  .m-chips { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; margin-top: clamp(7px,1.5vh,11px); }
+  .m-chip { padding: 3px 10px; border-radius: 13px; border: 2px solid var(--ink); font-size: var(--tiny); font-weight: 900; }
+  .m-chip.yes { color: #fff; }
+  .m-chip.no  { background: #fff; color: #5d5a55; }
+  .m-why { font-size: clamp(12.5px, 3.3vw, 14.5px); line-height: 1.52; color: #3a3a3a; margin-top: clamp(8px,1.6vh,12px); }
+  .m-next { margin-top: clamp(10px,2vh,15px); }
+  .m-done {
+    display: block; margin: 8px auto 0; background: none; border: none;
+    color: var(--grey); font-size: var(--small); font-weight: 700; cursor: pointer; text-decoration: underline;
+  }
+
+  /* ── SCOREBOARD ── */
+  .sb { text-align: center; display: flex; flex-direction: column; align-items: center; gap: clamp(5px,1.3vh,11px); }
+  .sb .eyebrow { font-size: var(--tiny); font-weight: 700; letter-spacing: 2.6px; text-transform: uppercase; color: var(--grey); }
+  .sb h1 { font-size: var(--h1); font-weight: 900; letter-spacing: -.5px; }
+  .final {
+    font-size: clamp(38px, 11.5vw, 64px); font-weight: 900; line-height: 1.05; color: var(--ink);
+    background: var(--mustard); border: 3px solid var(--ink); border-radius: 16px;
+    padding: 2px 20px; box-shadow: 5px 6px 0 var(--ink);
+  }
+  .tally { font-size: var(--body); font-weight: 700; }
+  .sb p { font-size: var(--small); color: #4a4a4a; line-height: 1.6; max-width: 370px; }
+
+  /* ── REVIEW SHEET (scrolls; this screen is meant to be taller than the frame) ── */
+  .rv { max-width: 640px; padding-bottom: clamp(8px,1.8vh,16px); }
+  .rv-head { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 2px; margin-bottom: clamp(9px,1.9vh,15px); }
+  .rv-head .eyebrow { font-size: var(--tiny); font-weight: 700; letter-spacing: 2.6px; text-transform: uppercase; color: var(--grey); }
+  .rv-head h1 { font-size: clamp(19px, 5vw, 27px); font-weight: 900; letter-spacing: -.5px; line-height: 1.1; }
+  .rv-key { font-size: var(--small); color: #4a4a4a; line-height: 1.5; max-width: 440px; margin-top: 3px; }
+  .rv-key b { font-weight: 900; }
+  .rv-list { display: flex; flex-direction: column; gap: clamp(7px,1.5vh,11px); }
+  .rv-row {
+    display: flex; align-items: center; gap: clamp(9px,2.3vw,15px);
+    background: #fff; border: 3px solid var(--ink); border-radius: 13px;
+    padding: clamp(7px,1.7vw,11px) clamp(9px,2.1vw,14px);
+    box-shadow: 4px 5px 0 rgba(26,26,26,0.12);
+  }
+  .rv-tri { flex: 0 0 clamp(50px, 12.5vw, 66px); }
+  .rv-tri svg { width: 100%; height: auto; display: block; }
+  .rv-txt { min-width: 0; }
+  .rv-type { display: flex; align-items: baseline; gap: .4em; flex-wrap: wrap; font-size: clamp(14px, 3.8vw, 17px); font-weight: 900; letter-spacing: -.25px; line-height: 1.15; }
+  .rv-parts { font-size: var(--tiny); font-weight: 700; letter-spacing: 1.3px; text-transform: uppercase; color: var(--grey); }
+  .rv-txt p { font-size: clamp(12px, 3.1vw, 14px); line-height: 1.5; color: #3a3a3a; margin-top: 3px; }
+
+  /* ── WIDE: the couple and the clipboard sit side by side ── */
+  @media (min-width: 620px) {
+    .inner { max-width: 700px; }
+    .case { flex-direction: row; align-items: flex-start; gap: clamp(13px, 2.6vw, 22px); }
+    .caseleft { flex: 1 1 auto; }
+    .form { flex: 0 0 clamp(232px, 35%, 278px); }
+    .title { flex-direction: row; align-items: center; gap: clamp(16px, 3.4vw, 30px); }
+    .title .plate { flex: 0 0 clamp(200px, 40%, 300px); }
+    .tcopy { text-align: left; flex: 1 1 auto; }
+    /* The plate's height follows the column width, so a wider embed makes it
+       taller - the opposite of what a fixed-height frame needs. Cap it against
+       the frame instead; object-fit: cover crops the couple rather than pushing
+       the button out of view. */
+    .couchplate { max-height: calc(100vh - 146px); }
+    .title .plate { max-height: calc(100vh - 120px); }
+  }
+  @media (max-height: 520px) {
+    .caseleft { gap: 7px; }
+    .analyze { min-height: 38px; }
+    .livetype { margin-top: 6px; }
+  }
+  @media (max-height: 430px) {
+    :root { --body: clamp(13px, 3.3vw, 15px); --h1: clamp(18px, 4.4vw, 24px); }
+    .tog .thint { display: none; }
+    .tog { min-height: 40px; }
+    .togs { gap: 5px; margin-top: 7px; margin-bottom: 8px; }
+    .livetype { margin-top: 6px; }
+    .couchplate { aspect-ratio: 3 / 2; }
+    .m-why { margin-top: 6px; line-height: 1.45; }
+    .m-chips { margin-top: 6px; }
+    .m-next { margin-top: 8px; min-height: 40px; }
+    .m-done { margin-top: 5px; }
+  }
+  @media (max-width: 619px) {
+    /* same reasoning as the wide layout: keep the plate from crowding out the form */
+    .couchplate { max-height: 40vh; }
+  }
+  @media (max-width: 619px) and (max-height: 560px) {
+    .couchplate { aspect-ratio: 16 / 10; max-height: 34vh; }
+  }
+  @media (max-width: 619px) {
+    .tog .thint { display: none; }
+    /* Stacked, the read-out costs more height than the line it replaced, which
+       is enough to push the button off a phone screen. Lay it out as one row. */
+    .livetype { flex-direction: row; justify-content: center; align-items: center; gap: 7px; margin-top: clamp(5px,1.1vh,9px); }
+    .lt-label { letter-spacing: 1.2px; }
+    .togs { flex-direction: row; gap: clamp(5px,1.6vw,8px); margin-bottom: clamp(7px,1.4vh,11px); }
+    .tog {
+      flex: 1 1 0; min-width: 0; flex-direction: column; justify-content: center;
+      gap: 3px; padding: 8px 4px; text-align: center; min-height: clamp(70px, 12vh, 88px);
+    }
+    .tog .icon  { order: 1; font-size: clamp(16px, 4.6vw, 21px); }
+    .tog .tlab { order: 2; }
+    .tog .box   { order: 3; width: 17px; height: 17px; border-radius: 5px; font-size: 10px; }
+    .tog .tname { font-size: clamp(11px, 3vw, 13px); }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <div class="topbar">
+    <span class="brand">🩺 Dr. <em>Love</em>'s Office</span>
+    <span class="spacer"></span>
+    <span class="casecount" id="casecount"></span>
+    <span class="money" id="money">$0</span>
+  </div>
+
+  <div class="stack">
+
+    <!-- ══ TITLE ══ -->
+    <section class="screen on" id="s-title">
+      <div class="inner title">
+        <div class="plate">
+          <img id="titleImg" alt="" hidden>
+          <div class="ph" id="titlePh"></div>
+        </div>
+        <div class="tcopy">
+          <h1>A couple needs<br>diagnosing. Thankfully,<br><em>Dr. Love</em> is here to help!</h1>
+          <p>Four couples are waiting. Hear what each one has to say, then diagnose which of passion, intimacy and commitment are present. You earn <b>$100</b> for every case you get right.</p>
+          <button class="btn" id="startBtn" style="margin-top:clamp(10px,2vh,16px);max-width:290px">See my first patient →</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ THE CASE ══ -->
+    <section class="screen" id="s-case">
+      <div class="inner case">
+
+        <div class="caseleft">
+          <span class="names" id="caseNames"></span>
+          <div class="plate couchplate">
+            <img id="coupleImg" alt="" hidden>
+            <div class="ph" id="couplePh"></div>
+            <div class="fileover" id="fileover"><div class="dlg" id="story"></div></div>
+          </div>
+          <button class="analyze" id="analyzeBtn">🔍 Analyze Couple</button>
+        </div>
+
+        <div class="form">
+          <div class="form-q">What's present?</div>
+          <div class="form-sub">Tick all that apply</div>
+          <div class="togs">
+            <button class="tog" data-dim="passion" aria-pressed="false" style="--c:#ee3b2e;--c-soft:#fde3e1">
+              <span class="box"></span><span class="icon">🔥</span>
+              <span class="tlab"><span class="tname">Passion</span><span class="thint">Desire and attraction</span></span>
+            </button>
+            <button class="tog" data-dim="intimacy" aria-pressed="false" style="--c:#2f9c95;--c-soft:#dff1ef">
+              <span class="box"></span><span class="icon">💬</span>
+              <span class="tlab"><span class="tname">Intimacy</span><span class="thint">Closeness and trust</span></span>
+            </button>
+            <button class="tog" data-dim="commitment" aria-pressed="false" style="--c:#f2b134;--c-soft:#fdf0d8">
+              <span class="box"></span><span class="icon">💍</span>
+              <span class="tlab"><span class="tname">Commitment</span><span class="thint">A decision to stay</span></span>
+            </button>
+          </div>
+          <button class="btn" id="diagBtn">Diagnose Couple</button>
+          <div class="livetype empty" id="livetype">
+            <span class="lt-label" id="ltLabel">No diagnosis yet</span>
+            <span class="lt-name" id="ltName">Tick at least one</span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ══ SCOREBOARD ══ -->
+    <section class="screen" id="s-score">
+      <div class="inner sb">
+        <span class="eyebrow">Office closed</span>
+        <h1>Session complete</h1>
+        <div class="final" id="finalAmt">$0</div>
+        <div class="tally" id="finalTally"></div>
+        <p>Every couple you saw is one of Sternberg's types of love — each one a different combination of passion, intimacy and commitment.</p>
+        <button class="btn mustard" id="revealBtn" style="max-width:290px;margin-top:clamp(5px,1.2vh,10px)">Reveal All Love Types</button>
+      </div>
+    </section>
+
+    <!-- ══ REVIEW SHEET ══ -->
+    <section class="screen" id="s-review">
+      <div class="inner rv">
+        <div class="rv-head">
+          <span class="eyebrow">Review sheet</span>
+          <h1>Sternberg's seven kinds of love</h1>
+          <p class="rv-key">Each triangle shows what the couple had. Filled means present, grey means absent:
+            <b style="color:#ee3b2e">P</b>&thinsp;assion,
+            <b style="color:#2f9c95">I</b>&thinsp;ntimacy,
+            <b style="color:#a9770f">C</b>&thinsp;ommitment.</p>
+        </div>
+        <div class="rv-list" id="rvList"></div>
+      </div>
+    </section>
+
+    <!-- ══ VERDICT ══ -->
+    <div class="overlay" id="overlay">
+      <div class="modal">
+        <div class="m-type-big" id="mTypeBig"></div>
+        <div class="m-rule" id="mRule"></div>
+        <div class="m-verdict" id="mVerdict"></div>
+        <div class="m-fee"  id="mFee"></div>
+        <div class="m-chips" id="mChips"></div>
+        <p class="m-why" id="mWhy"></p>
+        <button class="btn m-next" id="nextBtn">Next patient →</button>
+        <button class="m-done" id="doneBtn">I'm done for today</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+
+  var DIMS = [
+    { id:'passion',    label:'Passion',    color:'#ee3b2e' },
+    { id:'intimacy',   label:'Intimacy',   color:'#2f9c95' },
+    { id:'commitment', label:'Commitment', color:'#f2b134' }
+  ];
+
+  // Every combination of the three components, keyed passion-intimacy-commitment.
+  // Non-Love ('000') is deliberately absent: with it gone, every possible set of
+  // ticks names a real type, so the live read-out below the button is never blank.
+  var TYPES = {
+    '100': { name:'Infatuation',        emoji:'😍', color:'#ee3b2e' },
+    '010': { name:'Liking',             emoji:'💬', color:'#2f9c95' },
+    '001': { name:'Empty Love',         emoji:'🫙', color:'#bdb8b0', ink:true },
+    '110': { name:'Romantic Love',      emoji:'💕', color:'#e0457b' },
+    '011': { name:'Companionate Love',  emoji:'🫂', color:'#2f7d5a' },
+    '101': { name:'Fatuous Love',       emoji:'💒', color:'#f2b134', ink:true },
+    '111': { name:'Consummate Love',    emoji:'💞', color:'#e8622e' }
+  };
+
+  var couples = [
+    { file:'002', key:'010', names:"Sam & Alex",
+      dlg:[
+        ["Sam",  "We've been inseparable since freshman orientation. Alex knows my deepest fears, my worst stories, all of it — we can talk for six hours straight."],
+        ["Alex", "But neither of us has ever felt a flutter of attraction. And honestly? I can't picture us ever making this something official."]
+      ],
+      synopsis:"Sam and Alex share a deep emotional bond and know each other completely, but feel no physical attraction and have made no plans for a shared future.",
+      why:"Intimacy alone is Liking — the warm, close bond of genuine friendship. Sternberg counted true friendship as a real form of love, just not a romantic one." },
+
+    { file:'003', key:'100', names:"Diego & Zoe",
+      dlg:[
+        ["Diego", "I saw her across the room at a party two weeks ago and I have not stopped thinking about her since. I've already imagined our whole future together."],
+        ["Zoe",   "…We talked once. For about eight minutes. I don't know his last name, and I'm not entirely sure why I'm here."]
+      ],
+      synopsis:"Diego is consumed with desire for a woman he has spoken to once, knowing almost nothing about her and having promised her nothing.",
+      why:"Passion alone is Infatuation — the 'love at first sight' rush. It can feel overwhelming, but it rests on projection rather than real knowledge of the other person." },
+
+    { file:'004', key:'001', names:"Harold & Evelyn",
+      dlg:[
+        ["Harold", "Forty-one years. Dinner at six, bills paid on the first, holidays handled. We never argue."],
+        ["Evelyn", "We never really talk, either. Separate bedrooms for years now. But we made a vow, and that still means something."]
+      ],
+      synopsis:"Harold and Evelyn keep the structure of a 41-year marriage going out of duty alone, with the closeness and the desire both long gone.",
+      why:"Commitment alone is Empty Love — a relationship held together by duty, vow or obligation. The form of the relationship persists after its emotional substance has faded." },
+
+    { file:'005', key:'110', names:"Chloe & Marcus",
+      dlg:[
+        ["Chloe",  "Seven months and I'm still dizzy. We tell each other everything — childhood stuff, secret fears, ridiculous dreams — and the chemistry is unreal."],
+        ["Marcus", "Is she the one? Ha — who knows! We're just living in the moment. Neither of us has brought up next year."]
+      ],
+      synopsis:"Chloe and Marcus are powerfully attracted to each other and tell each other everything, but neither of them will talk about the future.",
+      why:"Passion and intimacy, with no commitment, is Romantic Love — deeply close and physically drawn together, but with no promise about the future. The love of summer romances." },
+
+    { file:'006', key:'011', names:"Ruth & David",
+      dlg:[
+        ["Ruth",  "Twenty-four years. He's my best friend. I book his doctor appointments from memory, and we can read in silence all evening and be perfectly happy."],
+        ["David", "The fireworks went out a long while ago, I'll admit that. But I'm not going anywhere, and neither is she."]
+      ],
+      synopsis:"Ruth and David know each other inside out and are devoted to each other for life, though the physical spark faded years ago.",
+      why:"Intimacy and commitment, without passion, is Companionate Love — the deep, devoted bond of long-married partners and close family. The spark may have cooled, but closeness and dedication remain." },
+
+    { file:'007', key:'101', names:"Brittany & Ryan",
+      dlg:[
+        ["Ryan",     "Eighteen days! I said I love you on day five and proposed on day fifteen. June wedding. When you know, you know!"],
+        ["Brittany", "We haven't talked about money, or kids, or where we'd even live. I don't know his middle name. But look at him!"]
+      ],
+      synopsis:"Brittany and Ryan have intense chemistry and a wedding date eighteen days in, but barely know each other at all.",
+      why:"Passion and commitment, without intimacy, is Fatuous Love — intense chemistry and big promises with no real knowledge of each other yet. Love moving faster than closeness can be built." },
+
+    { file:'008', key:'111', names:"Elena & Thomas",
+      dlg:[
+        ["Elena",  "Eighteen years together, thirteen married. A miscarriage, a career collapse, a move across the country — and we came out closer every single time."],
+        ["Thomas", "She's still the first person I want to tell everything to. And she still makes my heart do something when she laughs."]
+      ],
+      synopsis:"Elena and Thomas have all three components — lasting desire, deep knowledge of one another, and a commitment that real hardship has already tested.",
+      why:"All three components together form Consummate Love — the complete, ideal form. Sternberg considered it rare and effortful to maintain, but the kind of love most people are reaching for." }
+  ];
+
+  // The review sheet runs simplest to most complete, not in case order.
+  var REVIEW_ORDER = ['100', '010', '001', '110', '011', '101', '111'];
+
+  var SAY_YES = ['You got it!', 'Spot on, Doctor.', 'Exactly right.', 'Nailed the diagnosis.', "That's the one."];
+  var SAY_NO  = ['Not quite the right diagnosis.', 'Close, but not this one.', "That's not what this couple has.",
+                 'Not this time, Doctor.', 'Afraid not — take another look.'];
+
+  var FEE = 100, ROUNDS = 4;
+  var order = [], idx = 0, earnings = 0, right = 0, answered = 0, analysed = false;
+  var pick = { passion:false, intimacy:false, commitment:false };
+
+  function keyOf(c) { return c.key; }
+  function parts(key) {
+    return [key[0] === '1', key[1] === '1', key[2] === '1'];
+  }
+  function partsLabel(key) {
+    var on = [];
+    if (key[0] === '1') on.push('Passion');
+    if (key[1] === '1') on.push('Intimacy');
+    if (key[2] === '1') on.push('Commitment');
+    return on.length === 3 ? 'All three' : on.join(' + ') + (on.length === 1 ? ' only' : '');
+  }
+  function coupleFor(key) {
+    for (var i = 0; i < couples.length; i++) if (couples[i].key === key) return couples[i];
+    return null;
+  }
+  function anyPicked() { return pick.passion || pick.intimacy || pick.commitment; }
+  function pickKey() {
+    return (pick.passion ? '1' : '0') + (pick.intimacy ? '1' : '0') + (pick.commitment ? '1' : '0');
+  }
+
+  // ── PLACEHOLDER ART (stands in until the real drawings land in art/) ──
+  function couplePlaceholder(seed) {
+    var couch = ['#ee3b2e', '#2f9c95', '#f2b134'][seed % 3];
+    return '<svg viewBox="0 0 240 180" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%">' +
+      '<rect width="240" height="180" fill="#fff"/>' +
+      '<rect x="18" y="16" width="44" height="52" rx="3" fill="none" stroke="#1a1a1a" stroke-width="3"/>' +
+      '<path d="M26 60l12-18 10 13 8-9" fill="none" stroke="#1a1a1a" stroke-width="3" stroke-linejoin="round"/>' +
+      '<circle cx="196" cy="34" r="15" fill="none" stroke="#1a1a1a" stroke-width="3"/>' +
+      '<path d="M196 24v10l7 5" fill="none" stroke="#1a1a1a" stroke-width="3" stroke-linecap="round"/>' +
+      '<rect x="34" y="104" width="172" height="46" rx="9" fill="' + couch + '" stroke="#1a1a1a" stroke-width="3.5"/>' +
+      '<rect x="44" y="82" width="152" height="28" rx="9" fill="' + couch + '" stroke="#1a1a1a" stroke-width="3.5"/>' +
+      '<rect x="28" y="92" width="18" height="56" rx="8" fill="' + couch + '" stroke="#1a1a1a" stroke-width="3.5"/>' +
+      '<rect x="194" y="92" width="18" height="56" rx="8" fill="' + couch + '" stroke="#1a1a1a" stroke-width="3.5"/>' +
+      '<circle cx="96" cy="76" r="15" fill="#fff" stroke="#1a1a1a" stroke-width="3.5"/>' +
+      '<circle cx="91" cy="74" r="3" fill="#1a1a1a"/><circle cx="101" cy="74" r="3" fill="#1a1a1a"/>' +
+      '<path d="M91 84h10" stroke="#1a1a1a" stroke-width="3" stroke-linecap="round"/>' +
+      '<path d="M82 104q14-12 28 0v8H82z" fill="#fff" stroke="#1a1a1a" stroke-width="3.5" stroke-linejoin="round"/>' +
+      '<circle cx="146" cy="76" r="15" fill="#fff" stroke="#1a1a1a" stroke-width="3.5"/>' +
+      '<circle cx="141" cy="74" r="3" fill="#1a1a1a"/><circle cx="151" cy="74" r="3" fill="#1a1a1a"/>' +
+      '<path d="M141 84h10" stroke="#1a1a1a" stroke-width="3" stroke-linecap="round"/>' +
+      '<path d="M132 104q14-12 28 0v8h-28z" fill="#fff" stroke="#1a1a1a" stroke-width="3.5" stroke-linejoin="round"/>' +
+      '<path d="M8 160h224" stroke="#1a1a1a" stroke-width="3"/>' +
+      '</svg>';
+  }
+
+  function titlePlaceholder() {
+    return '<svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%">' +
+      '<rect width="300" height="200" fill="#fff"/>' +
+      '<rect x="92" y="78" width="130" height="36" rx="8" fill="#ee3b2e" stroke="#1a1a1a" stroke-width="3"/>' +
+      '<rect x="100" y="60" width="114" height="22" rx="8" fill="#ee3b2e" stroke="#1a1a1a" stroke-width="3"/>' +
+      '<circle cx="134" cy="56" r="12" fill="#fff" stroke="#1a1a1a" stroke-width="3"/>' +
+      '<circle cx="130" cy="55" r="2.4" fill="#1a1a1a"/><circle cx="138" cy="55" r="2.4" fill="#1a1a1a"/>' +
+      '<circle cx="180" cy="56" r="12" fill="#fff" stroke="#1a1a1a" stroke-width="3"/>' +
+      '<circle cx="176" cy="55" r="2.4" fill="#1a1a1a"/><circle cx="184" cy="55" r="2.4" fill="#1a1a1a"/>' +
+      '<g opacity="0.5">' +
+        '<ellipse cx="150" cy="186" rx="64" ry="42" fill="#2f9c95"/>' +
+        '<circle cx="150" cy="140" r="30" fill="#2f9c95"/>' +
+      '</g>' +
+      '<g opacity="0.28">' +
+        '<ellipse cx="150" cy="184" rx="72" ry="46" fill="#2f9c95"/>' +
+        '<circle cx="150" cy="138" r="35" fill="#2f9c95"/>' +
+      '</g>' +
+      '<text x="150" y="26" text-anchor="middle" font-family="Lato,sans-serif" font-size="13" font-weight="900" fill="#8d8a85">ART PENDING</text>' +
+      '</svg>';
+  }
+
+  // A thumbnail of the love triangle: the present components are filled in their
+  // own colour, the absent ones sit grey, so the shape of each type reads at a glance.
+  function miniTri(key) {
+    var on = parts(key);
+    var V = [
+      { x:32, y:10, hot:on[1], lab:'I', col:'#2f9c95', light:false },  // intimacy, apex
+      { x:10, y:48, hot:on[0], lab:'P', col:'#ee3b2e', light:false },  // passion, lower left
+      { x:54, y:48, hot:on[2], lab:'C', col:'#f2b134', light:true  }   // commitment, lower right
+    ];
+    var s = '<svg viewBox="0 0 64 58" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' +
+      '<path d="M32 10L10 48H54Z" fill="none" stroke="#1a1a1a" stroke-width="2.3" ' +
+      'stroke-linejoin="round" opacity="0.45"/>';
+    V.forEach(function (v) {
+      s += '<circle cx="' + v.x + '" cy="' + v.y + '" r="8.6" fill="' + (v.hot ? v.col : '#e6e2db') +
+           '" stroke="#1a1a1a" stroke-width="2.3"/>' +
+           '<text x="' + v.x + '" y="' + (v.y + 3.5) + '" text-anchor="middle" ' +
+           'font-family="Lato,Helvetica,sans-serif" font-size="9.6" font-weight="900" fill="' +
+           (v.hot ? (v.light ? '#1a1a1a' : '#fff') : '#a8a49c') + '">' + v.lab + '</text>';
+    });
+    return s + '</svg>';
+  }
+
+  // Try each source in turn; fall back to the drawn placeholder only if none load.
+  // Both stay hidden while loading so the placeholder never flashes in front of
+  // artwork that is about to arrive - the plate's own background covers the gap.
+  function plate(imgId, phId, sources, phHTML) {
+    var img = $(imgId), ph = $(phId), i = 0;
+    ph.innerHTML = phHTML;
+    ph.hidden = true; img.hidden = true;
+    img.onload = function () { img.hidden = false; ph.hidden = true; };
+    img.onerror = next;
+    function next() {
+      if (i >= sources.length) { img.removeAttribute('src'); img.hidden = true; ph.hidden = false; return; }
+      img.src = sources[i++];
+    }
+    next();
+  }
+
+  // Warm the cache for the couples still to come, so later cases appear at once.
+  function preloadCouples() {
+    couples.forEach(function (c) { new Image().src = 'art/couple-' + c.file + '.jpg'; });
+  }
+
+  // ── TICKS → LIVE DIAGNOSIS ────────────────────────────────────────────
+  // Named the moment a box is ticked, so students see their own answer change
+  // shape as they reason about it rather than only after they commit.
+  function paintReading() {
+    var box = $('livetype'), lab = $('ltLabel'), nm = $('ltName');
+    if (!anyPicked()) {
+      box.classList.add('empty');
+      lab.textContent = 'No diagnosis yet';
+      nm.textContent = 'Tick at least one';
+      nm.style.background = ''; nm.style.color = ''; nm.style.borderColor = '';
+    } else {
+      var t = TYPES[pickKey()];
+      box.classList.remove('empty');
+      lab.textContent = 'Your diagnosis';
+      nm.textContent = t.emoji + '  ' + t.name;
+      nm.style.background = t.color;
+      nm.style.color = t.ink ? '#1a1a1a' : '#fff';
+      nm.style.borderColor = '';
+    }
+    $('diagBtn').disabled = !analysed || !anyPicked();
+  }
+
+  document.querySelectorAll('.tog').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var dim = btn.dataset.dim;
+      pick[dim] = !pick[dim];
+      btn.classList.toggle('on', pick[dim]);
+      btn.setAttribute('aria-pressed', pick[dim] ? 'true' : 'false');
+      paintReading();
+    });
+  });
+
+  // ── FLOW ──────────────────────────────────────────────────────────────
+  function show(id) {
+    document.querySelectorAll('.screen').forEach(function (s) { s.classList.remove('on'); });
+    var el = $(id); el.classList.add('on'); el.scrollTop = 0;
+  }
+
+  function shuffle(a) {
+    a = a.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  function sample(a) { return a[Math.floor(Math.random() * a.length)]; }
+
+  // Grow the transcript until it just fills the overlay. Couples differ in how
+  // much they say and the box changes with the viewport, so this is measured.
+  function fitStory() {
+    var box = $('fileover'), p = $('story');
+    if (!p.textContent) return;
+    // The overlay centres its text with auto margins, so box.scrollHeight never
+    // exceeds box.clientHeight - measure the transcript against the box's
+    // content height instead.
+    var cs = getComputedStyle(box);
+    var avail = box.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - 2;
+    if (avail < 30) { setTimeout(fitStory, 80); return; }   // not laid out yet
+    var lo = 10, hi = 34;
+    for (var i = 0; i < 14; i++) {
+      var mid = (lo + hi) / 2;
+      p.style.fontSize = mid + 'px';
+      if (p.scrollHeight <= avail) lo = mid; else hi = mid;
+    }
+    p.style.fontSize = lo.toFixed(1) + 'px';
+    // Metrics can shift under us if the webfont lands mid-search, so verify
+    // the chosen size and step down until it genuinely fits.
+    for (var g = 0; g < 24 && p.scrollHeight > avail && lo > 10; g++) {
+      lo -= 0.5;
+      p.style.fontSize = lo.toFixed(1) + 'px';
+    }
+  }
+
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitStory);
+
+  var fitPending;
+  window.addEventListener('resize', function () {
+    clearTimeout(fitPending);
+    fitPending = setTimeout(fitStory, 120);
+  });
+
+  function setStoryOpen(open) {
+    $('fileover').classList.toggle('on', open);
+    if (open) requestAnimationFrame(fitStory);
+    var b = $('analyzeBtn');
+    b.classList.toggle('open', open);
+    b.textContent = open ? '👀 See the couple' : '🔍 Analyze Couple';
+    paintReading();
+  }
+
+  function loadCase() {
+    var c = couples[order[idx]];
+    $('caseNames').textContent = c.names;
+    $('story').innerHTML = c.dlg.map(function (line) {
+      return '<p><b class="who">' + line[0] + ':</b> ' + line[1] + '</p>';
+    }).join('');
+    $('story').style.fontSize = '';
+    fitStory();
+    $('casecount').textContent = 'Patient ' + (answered + 1) + ' of ' + ROUNDS;
+    plate('coupleImg', 'couplePh',
+          ['art/couple-' + c.file + '.jpg', 'art/couple-' + c.file + '.png'],
+          couplePlaceholder(order[idx]));
+
+    pick = { passion:false, intimacy:false, commitment:false };
+    document.querySelectorAll('.tog').forEach(function (b) {
+      b.classList.remove('on'); b.setAttribute('aria-pressed', 'false');
+    });
+    analysed = false;
+    setStoryOpen(false);
+    $('overlay').classList.remove('on');
+    show('s-case');
+  }
+
+  function addMoney(n) {
+    earnings += n;
+    var el = $('money');
+    el.textContent = '$' + earnings.toLocaleString();
+    el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+  }
+
+  function diagnose() {
+    var c = couples[order[idx]];
+    var truth = parts(c.key);
+    var ok = (pick.passion === truth[0]) && (pick.intimacy === truth[1]) && (pick.commitment === truth[2]);
+    var t = TYPES[c.key];
+    answered++;
+    if (ok) { right++; addMoney(FEE); }
+    $('casecount').textContent = 'Patient ' + answered + ' of ' + ROUNDS;
+
+    $('mTypeBig').innerHTML = '<span>' + t.emoji + '</span><span>' + t.name + '</span>';
+    $('mRule').style.background = t.color;
+
+    var v = $('mVerdict');
+    v.textContent = ok ? sample(SAY_YES) : sample(SAY_NO);
+    v.className = 'm-verdict ' + (ok ? 'ok' : 'no');
+
+    var fee = $('mFee');
+    fee.textContent = ok ? '+$' + FEE + ' earned' : 'No fee this time';
+    fee.style.color = ok ? '#2f9c95' : '#8d8a85';
+
+    var box = $('mChips');
+    box.innerHTML = '';
+    DIMS.forEach(function (d, n) {
+      var el = document.createElement('span');
+      var here = truth[n], hit = here === pick[d.id];
+      el.className = 'm-chip ' + (here ? 'yes' : 'no');
+      if (here) {
+        el.style.background = d.color;
+        if (d.id === 'commitment') el.style.color = '#1a1a1a';
+      }
+      el.textContent = (hit ? '✓ ' : '✗ ') + d.label + ': ' + (here ? 'present' : 'absent');
+      if (!hit) el.style.borderColor = d.color;
+      box.appendChild(el);
+    });
+
+    $('mWhy').textContent = c.why;
+    var last = idx >= ROUNDS - 1;
+    $('nextBtn').style.display = last ? 'none' : '';
+    $('doneBtn').textContent = last ? 'See my score →' : "I'm done for today";
+    $('overlay').classList.add('on');
+  }
+
+  function score() {
+    $('overlay').classList.remove('on');
+    $('finalAmt').textContent = '$' + earnings.toLocaleString();
+    $('finalTally').textContent = right + ' of ' + answered + ' diagnosed correctly';
+    show('s-score');
+  }
+
+  // The closing reference sheet: every type, not only the four seen this round.
+  function buildReview() {
+    var list = $('rvList');
+    if (list.children.length) return;          // built once, then reused
+    REVIEW_ORDER.forEach(function (key) {
+      var t = TYPES[key], c = coupleFor(key);
+      var row = document.createElement('div');
+      row.className = 'rv-row';
+      row.innerHTML =
+        '<div class="rv-tri">' + miniTri(key) + '</div>' +
+        '<div class="rv-txt">' +
+          '<div class="rv-type"><span>' + t.emoji + '</span><span>' + t.name + '</span>' +
+          '<span class="rv-parts">' + partsLabel(key) + '</span></div>' +
+          '<p>' + c.synopsis + '</p>' +
+        '</div>';
+      list.appendChild(row);
+    });
+  }
+
+  function review() {
+    buildReview();
+    show('s-review');
+  }
+
+  function start() {
+    order = shuffle(couples.map(function (_, i) { return i; })).slice(0, ROUNDS);
+    idx = 0; earnings = 0; right = 0; answered = 0;
+    $('money').textContent = '$0';
+    $('casecount').textContent = '';
+    $('overlay').classList.remove('on');
+    plate('titleImg', 'titlePh',
+          ['art/dr-love-title.jpg', 'art/dr-love-title.png'],
+          titlePlaceholder());
+    show('s-title');
+  }
+
+  $('startBtn').addEventListener('click', function () { loadCase(); });
+  preloadCouples();
+  $('analyzeBtn').addEventListener('click', function () {
+    analysed = true;
+    setStoryOpen(!$('fileover').classList.contains('on'));
+  });
+  $('diagBtn').addEventListener('click', diagnose);
+  $('nextBtn').addEventListener('click', function () {
+    idx++;
+    if (idx >= ROUNDS) { score(); return; }
+    loadCase();
+  });
+  $('doneBtn').addEventListener('click', score);
+  $('revealBtn').addEventListener('click', review);
+
+  paintReading();
+  start();
+})();
+</script>
+
+</body>
+</html>
