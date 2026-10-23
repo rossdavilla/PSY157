@@ -873,10 +873,12 @@
 
   // ##X### - the third digit is how many they got right, the other five are
   // noise, so the score is not readable over a shoulder but is trivial to pull
-  // out of the gradebook column afterwards.
+  // out of the gradebook column afterwards. The leading digit is 1-9 on
+  // purpose: a code starting in 0 loses that 0 the moment an export is opened
+  // as a number, which would slide the score digit out of third place.
   function makeCode(n) {
     var d = function () { return Math.floor(Math.random() * 10); };
-    return '' + d() + d() + n + d() + d() + d();
+    return '' + (1 + Math.floor(Math.random() * 9)) + d() + n + d() + d() + d();
   }
 
   function paintCode() {
