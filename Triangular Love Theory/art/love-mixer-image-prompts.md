@@ -54,12 +54,12 @@ Send this once, first, in the chat you will generate all eight images in.
 > it. No decorative borders or patterned frames.
 >
 > Use exactly these six colours and nothing else:
-> — warm bone white #F2E5CD for the background and most interior shapes
-> — deep near-black #17121F for every outline and all linework
-> — hot vermilion red #E0462F
-> — muted teal-cyan #4A9FB0
-> — dark ochre gold #D4972E
-> — olive green #7F8C3C
+> — warm bone white #F7F1E6 for the background and most interior shapes
+> — near-black #1A1A1A for every outline and all linework
+> — vermilion red #EE3B2E
+> — teal #2F9C95
+> — mustard gold #F2B134
+> — sage green #6F7453
 >
 > Across the set I will ask you to draw several different couples. **They must look like
 > different people** — vary hair, face shape, body shape, age and height every time, and make
@@ -157,9 +157,10 @@ ever visible in either, so a plain re-ask usually works, but if not:
 
 ## The kitchen backdrop
 
-`kitchen.jpg` already exists and is wired in behind the jars and pot, under a heavy dark
-gradient so it reads as texture rather than a picture. Leave it alone — the style change
-above does not really touch it.
+`kitchen.jpg` is the bright kitchen and now sits behind **both** the mixing screen and the
+result, under a pale scrim, so the cooking theme carries through to the reveal. The page
+palette was rebuilt around it — cream, teal, mustard and sage — to match Dr. Love's Office.
+Leave it alone unless you want to redo it.
 
 ## What not to replace
 

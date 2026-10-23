@@ -8,11 +8,12 @@ it lands. No code change is needed when you add one; just commit it.
 
 | Sheet | For | Style |
 | --- | --- | --- |
-| [love-mixer-image-prompts.md](love-mixer-image-prompts.md) | `love-mixer-embed.html` | Flat cartoon — 6 colours, bone ground |
+| [love-mixer-image-prompts.md](love-mixer-image-prompts.md) | `love-mixer-embed.html` | Flat cartoon — cream, teal, mustard, sage |
 | [dr-love-office-image-prompts.md](dr-love-office-image-prompts.md) | `love-doctor-embed.html` | Flat cartoon — 5 colours, white ground |
 
-Both activities now use the same flat cartoon style, told apart by their palettes: the
-Mixer keeps its dark ochre/red/cyan/olive set, the Doctor its red/teal/mustard.
+Both activities use the same flat cartoon style and now share a palette — cream, ink,
+red, teal and mustard. The
+Mixer adds sage green from its kitchen backdrop.
 
 ## What goes here
 
@@ -26,7 +27,7 @@ Mixer keeps its dark ochre/red/cyan/olive set, the Doctor its red/teal/mustard.
 - `companionate-love.jpg`
 - `fatuous-love.jpg`
 - `consummate-love.jpg`
-- `kitchen.jpg` — the kitchen backdrop, 16:9 (already wired in)
+- `kitchen.jpg` — the bright kitchen, 16:9, behind both screens
 
 **Dr. Love's Office** — ~1200px long edge, JPEG:
 

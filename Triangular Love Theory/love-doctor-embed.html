@@ -488,11 +488,13 @@
       '</svg>';
   }
 
-  // Try each source in turn; fall back to the drawn placeholder if none load.
+  // Try each source in turn; fall back to the drawn placeholder only if none load.
+  // Both stay hidden while loading so the placeholder never flashes in front of
+  // artwork that is about to arrive - the plate's own background covers the gap.
   function plate(imgId, phId, sources, phHTML) {
     var img = $(imgId), ph = $(phId), i = 0;
     ph.innerHTML = phHTML;
-    ph.hidden = false; img.hidden = true;
+    ph.hidden = true; img.hidden = true;
     img.onload = function () { img.hidden = false; ph.hidden = true; };
     img.onerror = next;
     function next() {
@@ -500,6 +502,11 @@
       img.src = sources[i++];
     }
     next();
+  }
+
+  // Warm the cache for the couples still to come, so later cases appear at once.
+  function preloadCouples() {
+    couples.forEach(function (c) { new Image().src = 'art/couple-' + c.file + '.jpg'; });
   }
 
   // ── TICKS ─────────────────────────────────────────────────────────────
@@ -674,6 +681,7 @@
   }
 
   $('startBtn').addEventListener('click', function () { loadCase(); });
+  preloadCouples();
   $('analyzeBtn').addEventListener('click', function () {
     analysed = true;
     setStoryOpen(!$('fileover').classList.contains('on'));
