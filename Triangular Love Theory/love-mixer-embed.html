@@ -138,7 +138,8 @@
 
   .potwrap { position: relative; width: clamp(140px, 40vw, 192px); }
   .potwrap svg { width: 100%; height: auto; display: block; overflow: visible; }
-  #potTip { transform-box: fill-box; transform-origin: 50% 88%; transition: transform .6s cubic-bezier(.5,0,.3,1); }
+  #potTip { transform-box: fill-box; transform-origin: 50% 88%; }
+  #potLid { transform-box: fill-box; transform-origin: 50% 75%; }
 
   .reading {
     font-size: var(--tiny); line-height: 1.45; color: #6a6560;
@@ -341,6 +342,11 @@
               <circle cx="120" cy="84" r="3" fill="#faf7f2" opacity=".3"/>
               <!-- rim -->
               <rect x="18" y="32" width="144" height="14" rx="7" fill="#f2b134" stroke="#1a1a1a" stroke-width="4"/>
+              <!-- lid: drops on before the finale, then blows off -->
+              <g id="potLid" opacity="0">
+                <path d="M24 35q66-27 132 0z" fill="#f2b134" stroke="#1a1a1a" stroke-width="4" stroke-linejoin="round"/>
+                <rect x="81" y="10" width="18" height="13" rx="6" fill="#f2b134" stroke="#1a1a1a" stroke-width="4"/>
+              </g>
             </g>
           </svg>
         </div>
@@ -646,7 +652,7 @@
       place(spoon, c.x + rx, c.y - 70 + 70 * easeOut(t), 12, 1);
     }).then(function () {
       potBubbles(color);
-      return tween(1000, function (t) {
+      return tween(760, function (t) {
         var a = t * Math.PI * 4.4;
         place(spoon, c.x + Math.cos(a) * rx, c.y + Math.sin(a) * rx * 0.42, Math.cos(a) * 20, 1);
       });
@@ -685,10 +691,96 @@
     setTimeout(function () { box.innerHTML = ''; }, 2600);
   }
 
-  function pourOut() {
-    $('potTip').style.transform = 'rotate(-34deg)';
-    return sleep(340).then(function () {
-      return tween(260, function (t) { fillPot(0.62 * (1 - t), $('stew').getAttribute('fill')); });
+  // The lid tears off and sails away under its own gravity.
+  function blowLid() {
+    var lid = $('potLid'), t0 = performance.now(), dur = 950;
+    (function frame(now) {
+      var t = (now - t0) / dur;
+      if (t >= 1) { lid.setAttribute('opacity', '0'); lid.style.transform = ''; return; }
+      var y = -300 * t + 190 * t * t;          // up hard, then gravity reclaims it
+      lid.style.transform = 'translate(' + (46 * t).toFixed(1) + 'px,' + y.toFixed(1) +
+                            'px) rotate(' + (560 * t).toFixed(1) + 'deg)';
+      lid.setAttribute('opacity', t > 0.72 ? ((1 - t) / 0.28).toFixed(2) : '1');
+      requestAnimationFrame(frame);
+    })(t0);
+  }
+
+  // The mixture is flung up out of the pot and arcs back down under gravity.
+  function spray(items, color, origin) {
+    var fx = $('fx'), glyphs = items.length ? items : null;
+    var n = glyphs ? 22 : 12;
+    for (var i = 0; i < n; i++) {
+      var g = document.createElementNS(NS, 'g');
+      if (glyphs) {
+        var u = document.createElementNS(NS, 'use'), sz = 24 + Math.random() * 18;
+        u.setAttribute('href', '#' + glyphs[i % glyphs.length]);
+        u.setAttribute('width', sz); u.setAttribute('height', sz);
+        u.setAttribute('x', -sz / 2); u.setAttribute('y', -sz / 2);
+        g.appendChild(u);
+      } else {
+        var c = document.createElementNS(NS, 'circle');
+        c.setAttribute('r', 5 + Math.random() * 7);
+        c.setAttribute('fill', color); c.setAttribute('opacity', '0.7');
+        g.appendChild(c);
+      }
+      fx.appendChild(g);
+      (function (g, vx, vy, spin, delay) {
+        var start = performance.now() + delay;
+        (function frame(now) {
+          var t = (now - start) / 1000;
+          if (t < 0) { requestAnimationFrame(frame); return; }
+          var y = origin.y + vy * t + 750 * t * t;
+          place(g, origin.x + vx * t, y, spin * t, 1);
+          if (y < window.innerHeight + 100 && t < 3.5) requestAnimationFrame(frame);
+          else g.remove();
+        })(performance.now());
+      })(g, (Math.random() - 0.5) * 620, -(520 + Math.random() * 520),
+           (Math.random() - 0.5) * 900, Math.random() * 190);
+    }
+  }
+
+  // Shake, blow the lid, erupt. Replaces the old tip-and-pour.
+  function erupt(color, items) {
+    var tip = $('potTip'), lid = $('potLid');
+    var potEl = $('stew').ownerSVGElement;
+    if (REDUCED) {                                   // no shaking, no fireworks
+      return tween(260, function (t) { fillPot(0.62 * (1 - t), color); });
+    }
+    tip.style.transition = 'none';
+    lid.style.transition = 'none';
+
+    lid.setAttribute('opacity', '1');
+    return tween(230, function (t) {                       // lid drops on
+      lid.style.transform = 'translateY(' + (-52 * Math.pow(1 - t, 2)).toFixed(1) + 'px)';
+    }).then(function () {
+      potBubbles(color);
+      return tween(620, function (t) {                     // rattle, winding up
+        var amp = 0.8 + t * t * 7.5;
+        tip.style.transform =
+          'translate(' + ((Math.random() - .5) * amp * 2).toFixed(2) + 'px,' +
+                         ((Math.random() - .5) * amp).toFixed(2) + 'px) rotate(' +
+                         ((Math.random() - .5) * amp).toFixed(2) + 'deg)';
+        lid.style.transform = 'translateY(' + (-Math.random() * amp * 0.6).toFixed(2) + 'px)';
+      });
+    }).then(function () {
+      return tween(100, function (t) {                     // squash before the leap
+        tip.style.transform = 'scale(' + (1 + .12 * t) + ',' + (1 - .14 * t) + ')';
+      });
+    }).then(function () {
+      var mouth = centreOf(potEl, 0.26);
+      blowLid();
+      spray(items, color, mouth);
+      tween(300, function (t) { fillPot(0.62 * (1 - t), color); });
+      steamAt(mouth.x - 16, mouth.y); steamAt(mouth.x + 18, mouth.y - 8); steamAt(mouth.x, mouth.y - 18);
+      return tween(560, function (t) {                     // the pot leaps and lands
+        var h = t < .36 ? Math.sin((t / .36) * Math.PI / 2) * 32
+                        : 32 * (1 - Math.pow((t - .36) / .64, 2));
+        var sq = t < .12 ? 1 - .1 * (1 - t / .12) : 1;
+        tip.style.transform = 'translateY(' + (-h).toFixed(2) + 'px) scale(' + (2 - sq).toFixed(3) + ',' + sq.toFixed(3) + ')';
+      });
+    }).then(function () {
+      tip.style.transform = '';
+      $('potBubbles').innerHTML = '';
     });
   }
 
@@ -782,7 +874,7 @@
       chain = chain.then(function () { return stir(type.color); });
     }
 
-    chain.then(function () { return pourOut(); })
+    chain.then(function () { return erupt(type.color, allItems); })
       .then(function () {
         $('rName').textContent = type.name;
         $('rName').style.color = type.color;
@@ -791,7 +883,7 @@
         $('artbox').style.borderColor = type.color;
         showArt(type, allItems);
         waterfall(allItems, type.color);
-        return sleep(260);
+        return sleep(200);
       })
       .then(function () {
         show('s-result');
@@ -812,6 +904,8 @@
     fillPot(0, '#6e6a5c');
     $('potBubbles').innerHTML = '';
     $('potTip').style.transform = '';
+    $('potLid').style.transform = '';
+    $('potLid').setAttribute('opacity', '0');
     $('fall').innerHTML = '';
     $('stamp').textContent = 'Sternberg · 1986';
     paintReading();
