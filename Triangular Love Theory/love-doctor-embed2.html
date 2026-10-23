@@ -882,6 +882,8 @@
   }
 
   function paintCode() {
+    var sel = window.getSelection && window.getSelection();
+    if (sel && sel.removeAllRanges) sel.removeAllRanges();
     document.querySelectorAll('.js-code').forEach(function (el) { el.textContent = sessionCode; });
     document.querySelectorAll('.js-copy').forEach(function (b) {
       b.textContent = 'Copy Code'; b.classList.remove('done');
@@ -900,6 +902,23 @@
     }
     // The clipboard API needs a secure context, which the embed has inside Top
     // Hat but a local file:// preview does not - fall back to a hidden field.
+    // Last resort: highlight the code where it sits so the student only has to
+    // press the copy shortcut. A dead "Select it" label would strand them with
+    // the one thing they actually need from the activity.
+    function selectOnScreen() {
+      var el = btn.parentNode.querySelector('.js-code');
+      try {
+        var range = document.createRange();
+        range.selectNodeContents(el);
+        var sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+      } catch (e) { /* no selection API; the code is still plainly readable */ }
+      btn.textContent = /Mac|iPhone|iPad|iPod/.test(navigator.platform || navigator.userAgent)
+        ? 'Press \u2318C' : 'Press Ctrl+C';
+      btn.classList.add('done');
+    }
+
     function legacy() {
       var ta = document.createElement('textarea');
       ta.value = sessionCode;
@@ -910,7 +929,7 @@
       var ok = false;
       try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
       ta.remove();
-      if (ok) done(); else btn.textContent = 'Select it';
+      if (ok) done(); else selectOnScreen();
     }
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(sessionCode).then(done, legacy);
