@@ -139,6 +139,11 @@
   .rside .eyebrow { margin-top: 6px; }
   .topname { font-size: 25px; line-height: 1.1; margin: 4px 0 8px; }
   .topdesc { font-size: 13px; line-height: 1.5; color: var(--ink); margin: 0; }
+
+  /* A three- or four-way tie names that many languages at once, so the heading
+     steps down to keep the column inside the 450px stage. */
+  #results[data-tie="3"] .topname,
+  #results[data-tie="4"] .topname { font-size: 21px; }
   .ractions { display: flex; gap: 8px; margin-top: auto; }
   .ractions .btn { padding: 10px 18px; font-size: 13.5px; white-space: nowrap; }
 
@@ -400,6 +405,13 @@
     return s + "</svg>";
   }
 
+  /* "A & B", then commas until the last pair: "A, B & C" */
+  function joinNames(names) {
+    return names.length < 3
+      ? names.join(" & ")
+      : names.slice(0, -1).join(", ") + " & " + names[names.length - 1];
+  }
+
   function showResults() {
     const { raw, pct } = computeScores();
     const best = Math.max(...ORDER.map((k) => raw[k]));
@@ -414,11 +426,15 @@
       $("topDesc").textContent = LANGS[top[0]].desc;
     } else {
       $("topLabel").textContent = "A tie at the top";
-      $("topName").textContent = top.map((k) => LANGS[k].name).join(" & ");
+      /* Listing all five reads as a wall of text, and the chart already shows them. */
+      $("topName").textContent = top.length === ORDER.length
+        ? "All five, about equally"
+        : joinNames(top.map((k) => LANGS[k].name));
       $("topDesc").textContent = top.length === ORDER.length
         ? "Every kind of gesture means about the same to you. That is a common pattern, and a useful one to talk about."
         : "These mean equally much to you. Notice what they have in common.";
     }
+    $("results").dataset.tie = top.length;
     loadArt($("resultsArt"), [`art/results-${top[0]}.png`, "art/hero-results.png"]);
     show("results");
   }
