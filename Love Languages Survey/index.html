@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Love Languages</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /*
+    Love Languages survey, built for a 720 x 450 embed.
+    The stage is always laid out at 720 x 450 and scaled to fit whatever
+    frame it sits in, so it also works full screen on a projector.
+
+    Art files live in the "art" folder next to this file. Every image is
+    optional: if a file is missing, a built-in vector fallback is shown.
+  */
+  :root {
+    --blush: #F2DCD8;
+    --pink:  #F5B3BA;
+    --rose:  #E67A8C;
+    --blue:  #7996C9;
+    --cream: #F5E6D7;
+
+    /* Two darker tones derived from the palette, used only for text contrast */
+    --ink: #3B2F3F;
+    --ink-soft: #6E5A66;
+    --rose-deep: #C9566C;
+    --blue-deep: #4F6898;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: var(--blush); }
+  body { font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: var(--ink); -webkit-font-smoothing: antialiased; }
+
+  #viewport { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
+  #stage { position: relative; flex: none; width: 720px; height: 450px; overflow: hidden; transform-origin: center center; background: var(--blush); }
+
+  /* ---------- Background layers ---------- */
+  .decor { position: absolute; inset: 0;
+    background:
+      radial-gradient(circle at 8% 12%, rgba(245,179,186,.75) 0 90px, transparent 91px),
+      radial-gradient(circle at 96% 88%, rgba(121,150,201,.30) 0 120px, transparent 121px),
+      radial-gradient(circle at 88% 6%, rgba(245,230,215,.9) 0 60px, transparent 61px),
+      radial-gradient(circle at 4% 96%, rgba(230,122,140,.25) 0 70px, transparent 71px),
+      var(--blush);
+  }
+  .bg { position: absolute; inset: 0; background-size: cover; background-position: center; opacity: 0; transition: opacity .5s ease; }
+  .bg-intro    { background-image: url("art/bg-intro.png"); }
+  .bg-question { background-image: url("art/bg-question.png"); }
+  .bg-results  { background-image: url("art/bg-results.png"); }
+  #stage[data-screen="intro"]    .bg-intro,
+  #stage[data-screen="question"] .bg-question,
+  #stage[data-screen="results"]  .bg-results { opacity: 1; }
+
+  /* ---------- Screens ---------- */
+  .screen { position: absolute; inset: 0; padding: 22px 26px; display: none; }
+  .screen.active { display: flex; animation: rise .45s ease both; }
+  @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+  .card { background: rgba(245,230,215,.94); border: 1.5px solid rgba(255,255,255,.7); border-radius: 22px; box-shadow: 0 10px 30px rgba(59,47,63,.12); }
+
+  h1, h2, .display { font-family: Fraunces, Georgia, serif; font-weight: 700; letter-spacing: -0.01em; margin: 0; }
+  .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--rose-deep); }
+
+  button { font: inherit; cursor: pointer; border: 0; }
+  button:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; }
+  .btn { padding: 12px 22px; border-radius: 999px; font-weight: 700; font-size: 15px; transition: transform .15s ease, background .15s ease, box-shadow .15s ease; }
+  .btn:active { transform: translateY(1px); }
+  .btn-primary { background: var(--rose-deep); color: #fff; box-shadow: 0 6px 16px rgba(201,86,108,.32); }
+  .btn-primary:hover { background: var(--rose); }
+  .btn-primary:disabled { background: #d9b9bd; box-shadow: none; cursor: default; }
+  .btn-quiet { background: rgba(255,255,255,.65); color: var(--ink); border: 1.5px solid var(--pink); }
+  .btn-quiet:hover { background: #fff; }
+
+  /* Art containers: built-in SVG shows until a real image loads */
+  .artbox { position: relative; }
+  .artbox .fallback, .artbox img.art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+  .artbox.has-art .fallback { display: none; }
+  .float { animation: bob 5s ease-in-out infinite; }
+  @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+
+  /* ---------- Intro ---------- */
+  #intro { align-items: center; gap: 18px; }
+  #intro .copy { flex: 1 1 0; padding: 30px 30px 28px; }
+  #intro h1 { font-size: 40px; line-height: 1.04; margin: 8px 0 14px; }
+  #intro h1 em { font-style: normal; color: var(--rose-deep); }
+  #intro p { margin: 0 0 12px; font-size: 14.5px; line-height: 1.55; color: var(--ink-soft); }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 20px; }
+  .chip { font-size: 12px; font-weight: 600; padding: 5px 11px; border-radius: 999px; background: var(--blush); color: var(--ink); }
+  .chip.blue { background: rgba(121,150,201,.22); color: var(--blue-deep); }
+  #intro .hero { flex: 0 0 270px; height: 290px; }
+
+  /* ---------- Question ---------- */
+  #question { flex-direction: column; gap: 12px; }
+  .topbar { display: flex; align-items: center; gap: 14px; height: 36px; }
+  .back { background: rgba(255,255,255,.7); color: var(--ink); font-weight: 600; font-size: 13px; padding: 8px 14px; border-radius: 999px; }
+  .back:hover { background: #fff; }
+  .progress { flex: 1; }
+  .progress-label { display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; color: var(--ink-soft); margin-bottom: 5px; }
+  .track { height: 8px; border-radius: 999px; background: rgba(255,255,255,.7); overflow: hidden; }
+  .fill { height: 100%; width: 0; border-radius: 999px; background: linear-gradient(90deg, var(--pink), var(--rose)); transition: width .35s ease; }
+
+  .qcard { flex: 1; display: flex; flex-direction: column; padding: 24px 28px 20px; }
+  .qcard.swap { animation: swap .35s ease both; }
+  @keyframes swap { from { opacity: 0; transform: translateX(14px); } to { opacity: 1; transform: none; } }
+  .qtext { font-size: 25px; line-height: 1.3; margin: 0 0 14px; flex: 1; display: flex; align-items: center; }
+
+  .options { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: auto; }
+  .opt { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 9px; height: 84px; padding: 8px 6px; border-radius: 16px; background: #fff; border: 2px solid var(--blush); color: var(--ink); font-weight: 600; font-size: 13px; transition: background .15s ease, border-color .15s ease, transform .15s ease; }
+  .opt:hover { border-color: var(--pink); transform: translateY(-2px); }
+  .opt.selected { background: var(--rose-deep); border-color: var(--rose-deep); color: #fff; transform: translateY(-2px); }
+  .pips { display: flex; gap: 4px; }
+  .pip { width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid var(--rose); }
+  .pip.on { background: var(--rose); }
+  .opt.selected .pip { border-color: #fff; }
+  .opt.selected .pip.on { background: #fff; }
+  .key { font-size: 10.5px; font-weight: 700; color: var(--ink-soft); opacity: .7; }
+  .opt.selected .key { color: #fff; }
+
+  .qfoot { display: flex; align-items: center; justify-content: space-between; margin-top: 14px; }
+  .hint { font-size: 12px; color: var(--ink-soft); }
+  .qfoot .btn { padding: 10px 20px; font-size: 14px; }
+
+  /* ---------- Results ---------- */
+  #results { gap: 16px; align-items: stretch; }
+  .rcard { flex: 0 0 418px; padding: 20px 22px 16px; display: flex; flex-direction: column; }
+  .rcard h2 { font-size: 22px; margin: 4px 0 10px; }
+  .chart text { font-family: Inter, system-ui, sans-serif; }
+  .chart .lbl { font-size: 12.5px; font-weight: 600; fill: var(--ink); }
+  .chart .val { font-size: 13px; font-weight: 700; fill: var(--ink); }
+  .chart .bar { transform-box: fill-box; transform-origin: left center; animation: grow .9s cubic-bezier(.2,.8,.2,1) both; }
+  @keyframes grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  .note { margin: auto 0 0; font-size: 11.5px; line-height: 1.45; color: var(--ink-soft); }
+
+  .rside { flex: 1; display: flex; flex-direction: column; align-items: center; text-align: center; padding: 4px 4px 0; }
+  .rside .hero { width: 176px; height: 176px; flex: none; }
+  .rside .eyebrow { margin-top: 6px; }
+  .topname { font-size: 25px; line-height: 1.1; margin: 4px 0 8px; }
+  .topdesc { font-size: 13px; line-height: 1.5; color: var(--ink); margin: 0; }
+  .ractions { display: flex; gap: 8px; margin-top: auto; }
+  .ractions .btn { padding: 10px 18px; font-size: 13.5px; white-space: nowrap; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+<div id="viewport">
+  <div id="stage" data-screen="intro">
+    <div class="decor"></div>
+    <div class="bg bg-intro"></div>
+    <div class="bg bg-question"></div>
+    <div class="bg bg-results"></div>
+
+    <!-- Opening screen -->
+    <section class="screen active" id="intro" aria-labelledby="introTitle">
+      <div class="card copy">
+        <div class="eyebrow">A 20-item self-reflection</div>
+        <h1 id="introTitle">What's your <em>love language?</em></h1>
+        <p>You'll see 20 things a partner might do. For each one, choose how much it would mean to you if a partner did it.</p>
+        <p>Go with your first reaction. There are no right answers, and nothing you choose is saved or shared.</p>
+        <div class="chips">
+          <span class="chip">About 3 minutes</span>
+          <span class="chip blue">Keys 1 to 5 work too</span>
+        </div>
+        <button class="btn btn-primary" id="startBtn">Start the survey</button>
+      </div>
+      <div class="artbox hero float" id="introArt">
+        <svg class="fallback" viewBox="0 0 300 300" aria-hidden="true">
+          <circle cx="150" cy="150" r="128" fill="#F5E6D7"/>
+          <circle cx="150" cy="150" r="128" fill="none" stroke="#fff" stroke-width="4" stroke-dasharray="2 12" stroke-linecap="round"/>
+          <g transform="translate(58 70) scale(1.55)">
+            <path d="M50 88 C20 66 4 48 4 30 C4 16 15 6 28 6 C38 6 46 12 50 20 C54 12 62 6 72 6 C85 6 96 16 96 30 C96 48 80 66 50 88Z" fill="#E67A8C"/>
+          </g>
+          <g transform="translate(150 120) scale(.95)">
+            <path d="M50 88 C20 66 4 48 4 30 C4 16 15 6 28 6 C38 6 46 12 50 20 C54 12 62 6 72 6 C85 6 96 16 96 30 C96 48 80 66 50 88Z" fill="#7996C9" opacity=".92"/>
+          </g>
+          <circle cx="76" cy="78" r="7" fill="#F5B3BA"/>
+          <circle cx="238" cy="96" r="5" fill="#E67A8C"/>
+          <circle cx="232" cy="232" r="9" fill="#F5B3BA"/>
+          <circle cx="64" cy="214" r="5" fill="#7996C9"/>
+        </svg>
+      </div>
+    </section>
+
+    <!-- One reusable screen for all 20 items -->
+    <section class="screen" id="question" aria-live="polite">
+      <div class="topbar">
+        <button class="back" id="backBtn" aria-label="Go back">&larr; Back</button>
+        <div class="progress">
+          <div class="progress-label"><span id="qCount">Item 1 of 20</span><span id="qPct">0% done</span></div>
+          <div class="track"><div class="fill" id="fill"></div></div>
+        </div>
+      </div>
+      <div class="card qcard" id="qcard">
+        <div class="eyebrow">How much would this mean to you?</div>
+        <h2 class="qtext display" id="qText"></h2>
+        <div class="options" id="options" role="group" aria-label="Rating"></div>
+        <div class="qfoot">
+          <span class="hint">Choosing an answer moves you ahead. You can go back any time.</span>
+          <button class="btn btn-primary" id="nextBtn" disabled>Next</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Results screen -->
+    <section class="screen" id="results" aria-labelledby="resultsTitle">
+      <div class="card rcard">
+        <div class="eyebrow">Your profile</div>
+        <h2 id="resultsTitle">How much each kind of gesture means to you</h2>
+        <div class="chart" id="chart"></div>
+        <p class="note">Scores run from 0 to 100. Most people value several of these, so look at the overall shape, not just the top bar.</p>
+      </div>
+      <div class="rside">
+        <div class="artbox hero float" id="resultsArt">
+          <svg class="fallback" viewBox="0 0 300 300" aria-hidden="true">
+            <circle cx="150" cy="150" r="128" fill="#F5E6D7"/>
+            <g transform="translate(70 66) scale(1.6)">
+              <path d="M50 88 C20 66 4 48 4 30 C4 16 15 6 28 6 C38 6 46 12 50 20 C54 12 62 6 72 6 C85 6 96 16 96 30 C96 48 80 66 50 88Z" fill="#E67A8C"/>
+              <path d="M30 22 C24 24 20 30 20 36" fill="none" stroke="#F5E6D7" stroke-width="5" stroke-linecap="round"/>
+            </g>
+            <path d="M150 34 l6 14 l14 6 l-14 6 l-6 14 l-6 -14 l-14 -6 l14 -6z" fill="#7996C9"/>
+            <path d="M246 196 l4 9 l9 4 l-9 4 l-4 9 l-4 -9 l-9 -4 l9 -4z" fill="#F5B3BA"/>
+            <path d="M54 120 l4 9 l9 4 l-9 4 l-4 9 l-4 -9 l-9 -4 l9 -4z" fill="#7996C9"/>
+          </svg>
+        </div>
+        <div class="eyebrow" id="topLabel">Your top love language</div>
+        <div class="topname display" id="topName"></div>
+        <p class="topdesc" id="topDesc"></p>
+        <div class="ractions">
+          <button class="btn btn-quiet" id="reviewBtn">Change answers</button>
+          <button class="btn btn-primary" id="retakeBtn">Retake</button>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script>
+  const LANGS = {
+    WA: { name: "Words of Affirmation", desc: "You feel most loved when affection is put into words: encouragement, compliments, and hearing \u201cI love you\u201d or \u201cI'm proud of you.\u201d" },
+    QT: { name: "Quality Time",          desc: "Undivided attention matters most to you. Time together where your partner is present, listening, and not half on their phone says the most." },
+    AS: { name: "Acts of Service",       desc: "For you, love shows up in what a partner does. Taking something off your plate when you're stretched thin speaks louder than words." },
+    PT: { name: "Physical Touch",        desc: "Closeness is how you feel connected, from holding hands in public to an arm around you on the couch." },
+    RG: { name: "Receiving Gifts",       desc: "Thoughtful gifts, big or small, tell you a partner was thinking about you when you weren't around." }
+  };
+  const ORDER = ["WA", "QT", "AS", "PT", "RG"];
+
+  const items = [
+    { text: "You hear the words \u201cI appreciate you\u201d from your partner.", lang: "WA" },
+    { text: "You spend alone time with your partner, just the two of you.", lang: "QT" },
+    { text: "Your partner takes care of something you're responsible for, but feel too stressed to do at the time.", lang: "AS" },
+    { text: "Your partner puts their arm around you.", lang: "PT" },
+    { text: "You get the chance to just \u201chang out\u201d with your partner.", lang: "QT" },
+    { text: "Your partner surprises you with a small token of their appreciation.", lang: "RG" },
+    { text: "Your partner does things for you, instead of just talking about doing nice things.", lang: "AS" },
+    { text: "You hear \u201cI love you\u201d from your partner.", lang: "WA" },
+    { text: "Your partner doesn't interrupt you while you're talking.", lang: "QT" },
+    { text: "Your partner works on a special project with you that you have to complete.", lang: "AS" },
+    { text: "Your partner gives you a little gift as a token of their love for you.", lang: "RG" },
+    { text: "Your partner holds your hand in public.", lang: "PT" },
+    { text: "You and your partner are physically intimate.", lang: "PT" },
+    { text: "You are complimented by your partner for no apparent reason.", lang: "WA" },
+    { text: "Your partner unexpectedly does something for you, such as doing your laundry or getting groceries.", lang: "AS" },
+    { text: "Your partner gives you something that shows they were really thinking about you.", lang: "RG" },
+    { text: "You and your partner touch a lot during the normal course of a day.", lang: "PT" },
+    { text: "Your partner takes the time to listen to you and really understand your feelings.", lang: "QT" },
+    { text: "You hear your partner tell you, \u201cI'm proud of you.\u201d", lang: "WA" },
+    { text: "Your partner surprises you with a gift.", lang: "RG" }
+  ];
+
+  const SCALE = ["Not at all", "A little", "Somewhat", "Quite a bit", "A lot"];
+
+  const $ = (id) => document.getElementById(id);
+  const stage = $("stage");
+  const answers = new Array(items.length).fill(null);
+  let current = 0;
+  let locked = false;
+
+  /* Scale the 720 x 450 stage to fit its frame */
+  function fit() {
+    const s = Math.min(window.innerWidth / 720, window.innerHeight / 450);
+    stage.style.transform = `scale(${s})`;
+  }
+  window.addEventListener("resize", fit);
+  fit();
+
+  /* Load the first art file that exists; otherwise keep the vector fallback */
+  function loadArt(box, sources) {
+    box.classList.remove("has-art");
+    const old = box.querySelector("img.art");
+    if (old) old.remove();
+    const attempt = (i) => {
+      if (i >= sources.length) return;
+      const img = new Image();
+      img.className = "art";
+      img.alt = "";
+      img.onload = () => { box.appendChild(img); box.classList.add("has-art"); };
+      img.onerror = () => attempt(i + 1);
+      img.src = sources[i];
+    };
+    attempt(0);
+  }
+  loadArt($("introArt"), ["art/hero-intro.png"]);
+
+  function show(id) {
+    document.querySelectorAll(".screen").forEach((s) => s.classList.toggle("active", s.id === id));
+    stage.dataset.screen = id;
+  }
+
+  /* Build the five answer buttons once */
+  const optWrap = $("options");
+  SCALE.forEach((label, value) => {
+    const b = document.createElement("button");
+    b.className = "opt";
+    b.type = "button";
+    b.dataset.value = value;
+    b.setAttribute("aria-pressed", "false");
+    let pips = "";
+    for (let p = 1; p <= 4; p++) pips += `<span class="pip${p <= value ? " on" : ""}"></span>`;
+    b.innerHTML = `<span class="pips" aria-hidden="true">${pips}</span><span>${label}</span><span class="key" aria-hidden="true">${value + 1}</span>`;
+    b.addEventListener("click", () => choose(value));
+    optWrap.appendChild(b);
+  });
+
+  function renderQuestion(animate = true) {
+    const q = items[current];
+    const done = answers.filter((a) => a !== null).length;
+    $("qCount").textContent = `Item ${current + 1} of ${items.length}`;
+    $("qPct").textContent = `${Math.round((done / items.length) * 100)}% done`;
+    $("fill").style.width = `${(done / items.length) * 100}%`;
+    $("qText").textContent = q.text;
+    optWrap.querySelectorAll(".opt").forEach((b) => {
+      const on = answers[current] === Number(b.dataset.value);
+      b.classList.toggle("selected", on);
+      b.setAttribute("aria-pressed", String(on));
+    });
+    const next = $("nextBtn");
+    next.disabled = answers[current] === null;
+    next.textContent = current === items.length - 1 ? "See my results" : "Next";
+    if (animate) {
+      const card = $("qcard");
+      card.classList.remove("swap");
+      void card.offsetWidth;
+      card.classList.add("swap");
+    }
+  }
+
+  function choose(value) {
+    if (locked) return;
+    answers[current] = value;
+    renderQuestion(false);
+    locked = true;
+    setTimeout(() => { locked = false; advance(); }, 280);
+  }
+
+  function advance() {
+    if (answers[current] === null) return;
+    if (current < items.length - 1) { current++; renderQuestion(); }
+    else showResults();
+  }
+
+  function goBack() {
+    if (current === 0) { show("intro"); return; }
+    current--;
+    renderQuestion();
+  }
+
+  function computeScores() {
+    const raw = { WA: 0, QT: 0, AS: 0, PT: 0, RG: 0 };
+    const max = { WA: 0, QT: 0, AS: 0, PT: 0, RG: 0 };
+    items.forEach((q, i) => {
+      max[q.lang] += 4;
+      if (answers[i] !== null) raw[q.lang] += answers[i];
+    });
+    const pct = {};
+    ORDER.forEach((k) => { pct[k] = Math.round((raw[k] / max[k]) * 100); });
+    return { raw, pct };
+  }
+
+  /* Vector bar chart (SVG) so it stays sharp when projected or zoomed */
+  function chartSVG(pct, sorted, top) {
+    const W = 374, rowH = 41, H = rowH * sorted.length;
+    const barX = 174, barMax = W - barX - 40, barH = 18;
+    let s = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Bar chart of love language scores">`;
+    sorted.forEach((k, i) => {
+      const y = i * rowH;
+      const w = Math.max(barH, (barMax * pct[k]) / 100);
+      const color = top.includes(k) ? "#E67A8C" : "#7996C9";
+      s += `<circle cx="11" cy="${y + 21}" r="6" fill="${color}"/>`;
+      s += `<image href="art/icon-${k}.png" x="0" y="${y + 9}" width="24" height="24" onerror="this.remove()"/>`;
+      s += `<text class="lbl" x="32" y="${y + 25.5}">${LANGS[k].name}</text>`;
+      s += `<rect x="${barX}" y="${y + 12}" width="${barMax}" height="${barH}" rx="9" fill="#F2DCD8"/>`;
+      s += `<rect class="bar" style="animation-delay:${0.15 + i * 0.08}s" x="${barX}" y="${y + 12}" width="${w}" height="${barH}" rx="9" fill="${color}"/>`;
+      s += `<text class="val" x="${W}" y="${y + 26}" text-anchor="end">${pct[k]}</text>`;
+    });
+    return s + "</svg>";
+  }
+
+  function showResults() {
+    const { raw, pct } = computeScores();
+    const best = Math.max(...ORDER.map((k) => raw[k]));
+    const top = ORDER.filter((k) => raw[k] === best);
+    const sorted = ORDER.slice().sort((a, b) => pct[b] - pct[a] || ORDER.indexOf(a) - ORDER.indexOf(b));
+
+    $("chart").innerHTML = chartSVG(pct, sorted, top);
+
+    if (top.length === 1) {
+      $("topLabel").textContent = "Your top love language";
+      $("topName").textContent = LANGS[top[0]].name;
+      $("topDesc").textContent = LANGS[top[0]].desc;
+    } else {
+      $("topLabel").textContent = "A tie at the top";
+      $("topName").textContent = top.map((k) => LANGS[k].name).join(" & ");
+      $("topDesc").textContent = top.length === ORDER.length
+        ? "Every kind of gesture means about the same to you. That is a common pattern, and a useful one to talk about."
+        : "These mean equally much to you. Notice what they have in common.";
+    }
+    loadArt($("resultsArt"), [`art/results-${top[0]}.png`, "art/hero-results.png"]);
+    show("results");
+  }
+
+  function restart() {
+    answers.fill(null);
+    current = 0;
+    show("intro");
+  }
+
+  $("startBtn").addEventListener("click", () => { current = 0; renderQuestion(); show("question"); });
+  $("backBtn").addEventListener("click", goBack);
+  $("nextBtn").addEventListener("click", advance);
+  $("retakeBtn").addEventListener("click", restart);
+  $("reviewBtn").addEventListener("click", () => { current = items.length - 1; renderQuestion(); show("question"); });
+
+  document.addEventListener("keydown", (e) => {
+    const screen = stage.dataset.screen;
+    if (screen === "intro" && (e.key === "Enter" || e.key === " ") && document.activeElement === document.body) {
+      e.preventDefault(); $("startBtn").click();
+    } else if (screen === "question") {
+      if (e.key >= "1" && e.key <= "5") choose(Number(e.key) - 1);
+      else if (e.key === "ArrowLeft") goBack();
+      else if (e.key === "ArrowRight") advance();
+    }
+  });
+</script>
+</body>
+</html>
