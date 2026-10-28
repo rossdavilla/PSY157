@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>What's Your Attachment Style?</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --ink: #001021;
+    --teal: #034748;
+    --blue: #1481BA;
+    --sky: #11B5E4;
+    --cyan: #0CAADC;
+    --muted: #4A5866;
+    --line: #CFE6F2;
+    --tint: #EEF8FC;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+    font-family: 'Poppins', sans-serif;
+    color: var(--ink);
+    background: #fff;
+  }
+
+  button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+
+  /* Fixed 720x450 stage, scaled to fit whatever frame it's placed in.
+     The clipped frame keeps the unscaled stage from widening the page on phones. */
+  #frame { position: fixed; inset: 0; overflow: hidden; }
+  #stage {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 720px;
+    height: 450px;
+    padding: 18px 24px;
+    transform-origin: 0 0;
+    background: #fff;
+  }
+
+  .screen { display: none; height: 100%; flex-direction: column; }
+  .screen.active { display: flex; animation: slideIn 0.3s ease; }
+  .screen.active.back { animation-name: slideBack; }
+  @keyframes slideIn   { from { opacity: 0; transform: translateX(24px); }  to { opacity: 1; transform: none; } }
+  @keyframes slideBack { from { opacity: 0; transform: translateX(-24px); } to { opacity: 1; transform: none; } }
+
+  /* Buttons */
+  .btn {
+    font-family: 'Poppins', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    min-height: 72px;
+    padding: 0 28px;
+    white-space: nowrap;
+    background: var(--blue);
+    color: #fff;
+    border: 3px solid var(--blue);
+    border-radius: 14px;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.15s;
+  }
+  .btn:active { transform: translateY(1px); }
+  .btn.ghost { background: #fff; color: var(--blue); }
+  .btn[hidden] { display: none; }
+  @media (hover: hover) {
+    .btn:hover { background: var(--teal); border-color: var(--teal); color: #fff; }
+  }
+
+  /* ── Start screen ── */
+  #start { align-items: center; justify-content: center; text-align: center; gap: 22px; }
+  #start h1 { font-size: 40px; font-weight: 800; line-height: 1.15; letter-spacing: -0.5px; }
+  #start p {
+    max-width: 620px;
+    font-size: 19px;
+    line-height: 1.55;
+    color: var(--muted);
+    border-left: 6px solid var(--sky);
+    background: var(--tint);
+    border-radius: 0 12px 12px 0;
+    padding: 14px 20px;
+    text-align: left;
+  }
+  #start .btn { min-width: 220px; }
+
+  /* ── Question screen ── */
+  .top { flex: none; display: flex; align-items: center; gap: 16px; height: 32px; }
+  .track { flex: 1; height: 10px; background: var(--line); border-radius: 99px; overflow: hidden; }
+  .fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--blue), var(--sky));
+    border-radius: 99px;
+    transition: width 0.4s ease;
+  }
+  .count { font-size: 18px; font-weight: 700; color: var(--blue); white-space: nowrap; }
+
+  .q-body { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; gap: 24px; }
+  .q-text {
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1.35;
+    text-align: center;
+    max-width: 640px;
+    margin: 0 auto;
+  }
+
+  .options { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+  .opt {
+    font-family: 'Poppins', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.2;
+    color: var(--ink);
+    background: #fff;
+    border: 3px solid var(--line);
+    border-radius: 14px;
+    min-height: 112px;
+    padding: 6px 2px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    white-space: pre-line;
+  }
+  .opt .n { font-size: 22px; font-weight: 800; color: var(--blue); }
+  .opt.selected { background: var(--blue); border-color: var(--blue); color: #fff; }
+  .opt.selected .n { color: #fff; }
+  @media (hover: hover) {
+    .opt:hover:not(.selected) { border-color: var(--sky); background: var(--tint); }
+  }
+
+  .foot { flex: none; display: grid; grid-template-columns: 180px 1fr 180px; align-items: center; gap: 12px; }
+  .hint { font-size: 18px; color: var(--muted); text-align: center; }
+
+  /* ── Results screen ── */
+  #results { flex-direction: row; gap: 20px; }
+  .grid-panel { flex: none; width: 430px; display: flex; flex-direction: column; }
+  .grid-panel h2 { font-size: 26px; font-weight: 800; line-height: 1; margin-bottom: 8px; }
+  #grid { flex: 1; min-height: 0; width: 100%; overflow: visible; }
+  #grid .quad { fill: rgba(17,181,228,0.06); transition: fill 0.6s ease; }
+  #grid .qlabel { font-family: 'Poppins', sans-serif; font-size: 20px; font-weight: 700; fill: var(--muted); }
+  #grid .qlabel.mine { fill: var(--ink); }
+  #grid .axis { font-family: 'Poppins', sans-serif; font-size: 17px; font-weight: 700; fill: var(--blue); }
+  #dot { transition: transform 1.1s cubic-bezier(0.23, 1, 0.32, 1); }
+
+  .side { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .bars { flex: 1; min-height: 0; display: flex; justify-content: space-around; gap: 16px; }
+  .bar-col { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .bar-score { font-size: 32px; font-weight: 800; line-height: 1; }
+  .bar-track {
+    flex: 1;
+    width: 64px;
+    background: var(--tint);
+    border: 2px solid var(--line);
+    border-radius: 14px;
+    position: relative;
+    overflow: hidden;
+  }
+  .bar-track::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    border-top: 2px dashed rgba(0,16,33,0.3);
+  }
+  .bar-fill {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 0%;
+    transition: height 1.2s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  .insec-bar { background: linear-gradient(0deg, var(--blue), var(--sky)); }
+  .avoid-bar { background: linear-gradient(0deg, var(--teal), var(--blue)); }
+  .bar-name { font-size: 18px; font-weight: 700; }
+  .side .btn { margin-top: 14px; width: 100%; }
+</style>
+</head>
+<body>
+<div id="frame">
+<div id="stage">
+
+  <!-- Start -->
+  <section class="screen active" id="start">
+    <h1>What's Your Attachment Style?</h1>
+    <p>This survey is about how you relate to romantic partners. If you're not currently in a relationship, think back to your most recent romantic relationship. If you've never been in a romantic relationship, imagine what it would most likely be like if you were in one.</p>
+    <button class="btn" id="start-btn">Start →</button>
+  </section>
+
+  <!-- Question -->
+  <section class="screen" id="question">
+    <div class="top">
+      <div class="track"><div class="fill" id="fill"></div></div>
+      <div class="count" id="count">1 of 12</div>
+    </div>
+    <div class="q-body">
+      <div class="q-text" id="q-text"></div>
+      <div class="options" id="options"></div>
+    </div>
+    <div class="foot">
+      <button class="btn ghost" id="back-btn">← Back</button>
+      <span class="hint" id="hint">Tap an answer to continue</span>
+      <button class="btn" id="next-btn" hidden>Next →</button>
+    </div>
+  </section>
+
+  <!-- Results -->
+  <section class="screen" id="results">
+    <div class="grid-panel">
+      <h2>Attachment Style</h2>
+      <svg id="grid" viewBox="0 0 430 370" aria-label="Attachment style grid">
+        <!-- plot area: x 34–426, y 4–336 -->
+        <rect class="quad" data-style="preoccupied"  x="34"  y="4"   width="196" height="166" />
+        <rect class="quad" data-style="disorganized" x="230" y="4"   width="196" height="166" />
+        <rect class="quad" data-style="secure"       x="34"  y="170" width="196" height="166" />
+        <rect class="quad" data-style="dismissing"   x="230" y="170" width="196" height="166" />
+        <rect x="34" y="4" width="392" height="332" rx="4" fill="none" stroke="#1481BA" stroke-width="3" />
+        <line x1="230" y1="4" x2="230" y2="336" stroke="#1481BA" stroke-width="2" stroke-dasharray="7 5" />
+        <line x1="34" y1="170" x2="426" y2="170" stroke="#1481BA" stroke-width="2" stroke-dasharray="7 5" />
+        <text class="qlabel" data-style="preoccupied"  x="132" y="40"  text-anchor="middle">Preoccupied</text>
+        <text class="qlabel" data-style="disorganized" x="328" y="40"  text-anchor="middle">Disorganized</text>
+        <text class="qlabel" data-style="secure"       x="132" y="316" text-anchor="middle">Secure</text>
+        <text class="qlabel" data-style="dismissing"   x="328" y="316" text-anchor="middle">Dismissing</text>
+        <text class="axis" x="230" y="362" text-anchor="middle">Avoidance →</text>
+        <text class="axis" x="0" y="0" text-anchor="middle" transform="translate(22 170) rotate(-90)">Insecurity →</text>
+        <g id="dot" style="transform: translate(230px, 170px)">
+          <circle r="15" fill="#fff" />
+          <circle r="11" fill="#001021" />
+          <circle r="6" fill="#11B5E4" />
+        </g>
+      </svg>
+    </div>
+    <div class="side">
+      <div class="bars">
+        <div class="bar-col">
+          <div class="bar-score" id="insec-score">0</div>
+          <div class="bar-track"><div class="bar-fill insec-bar" id="insec-bar"></div></div>
+          <div class="bar-name">Insecurity</div>
+        </div>
+        <div class="bar-col">
+          <div class="bar-score" id="avoid-score">0</div>
+          <div class="bar-track"><div class="bar-fill avoid-bar" id="avoid-bar"></div></div>
+          <div class="bar-name">Avoidance</div>
+        </div>
+      </div>
+      <button class="btn ghost" id="reset-btn">↺ Retake</button>
+    </div>
+  </section>
+
+</div>
+</div>
+
+<script>
+// ── Scale data (ECR-12) ─────────────────────────────────────────────────
+// type: 'avoid' (closeness avoidance) | 'insec' (attachment anxiety)
+const ITEMS = [
+  { type: 'avoid', text: "I prefer not to share my feelings with a romantic partner." },
+  { type: 'avoid', text: "I find it difficult to allow myself to depend on romantic partners." },
+  { type: 'avoid', text: "I don't feel comfortable opening up to romantic partners." },
+  { type: 'avoid', text: "I prefer not to be too close to romantic partners." },
+  { type: 'avoid', text: "I get uncomfortable when a romantic partner wants to be very close to me." },
+  { type: 'avoid', text: "I find it hard to let romantic partners in emotionally." },
+  { type: 'insec', text: "I'm afraid that I will lose my partner's love." },
+  { type: 'insec', text: "I often wish that my partner's feelings for me were as strong as my feelings for them." },
+  { type: 'insec', text: "I worry that romantic partners won't care about me as much as I care about them." },
+  { type: 'insec', text: "My desire to be very close sometimes scares people away." },
+  { type: 'insec', text: "I worry a lot about my relationships." },
+  { type: 'insec', text: "When my partner is out of contact, I worry that they might lose interest in me." },
+];
+
+const OPTIONS = ["Strongly\nDisagree", "Disagree", "Slightly\nDisagree", "Neutral", "Slightly\nAgree", "Agree", "Strongly\nAgree"];
+
+// Plot area inside the SVG grid
+const PLOT = { x: 34, y: 4, w: 392, h: 332 };
+
+// ── State ───────────────────────────────────────────────────────────────
+let order = [];   // shuffled item indexes
+let answers = []; // answers[k] = 1–7 for the k-th question shown
+let current = 0;
+let advanceTimer = null;
+
+const $ = id => document.getElementById(id);
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function show(id, back = false) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active', 'back'));
+  const el = $(id);
+  void el.offsetWidth; // restart the slide animation
+  el.classList.add('active');
+  if (back) el.classList.add('back');
+}
+
+// ── Question screen ─────────────────────────────────────────────────────
+OPTIONS.forEach((label, i) => {
+  const b = document.createElement('button');
+  b.className = 'opt';
+  b.innerHTML = `<span class="n">${i + 1}</span><span>${label}</span>`;
+  b.addEventListener('click', () => choose(i + 1));
+  $('options').appendChild(b);
+});
+
+function updateFill() {
+  $('fill').style.width = (answers.filter(a => a !== null).length / ITEMS.length * 100) + '%';
+}
+
+function renderQuestion(back = false) {
+  clearTimeout(advanceTimer);
+  $('q-text').textContent = ITEMS[order[current]].text;
+  $('count').textContent = `${current + 1} of ${ITEMS.length}`;
+  updateFill();
+  document.querySelectorAll('.opt').forEach((b, i) => b.classList.toggle('selected', answers[current] === i + 1));
+  const answered = answers[current] !== null;
+  $('next-btn').hidden = !answered;
+  $('hint').style.visibility = answered ? 'hidden' : 'visible';
+  show('question', back);
+}
+
+function choose(value) {
+  answers[current] = value;
+  document.querySelectorAll('.opt').forEach((b, i) => b.classList.toggle('selected', value === i + 1));
+  updateFill();
+  clearTimeout(advanceTimer);
+  advanceTimer = setTimeout(next, 350);
+}
+
+function next() {
+  if (answers[current] === null) return;
+  if (current < ITEMS.length - 1) { current++; renderQuestion(); }
+  else showResults();
+}
+
+function back() {
+  if (current === 0) { clearTimeout(advanceTimer); show('start', true); return; }
+  current--;
+  renderQuestion(true);
+}
+
+function begin() {
+  order = shuffle(ITEMS.map((_, i) => i));
+  answers = new Array(ITEMS.length).fill(null);
+  current = 0;
+  renderQuestion();
+}
+
+// ── Scoring ─────────────────────────────────────────────────────────────
+// Each subscale is the mean of its 6 items (1–7), converted to 0–100.
+function score(type) {
+  let sum = 0, n = 0;
+  order.forEach((itemIndex, k) => {
+    if (ITEMS[itemIndex].type !== type) return;
+    sum += answers[k];
+    n++;
+  });
+  return Math.round(((sum / n - 1) / 6) * 100);
+}
+
+function styleFor(insec, avoid) {
+  if (insec < 50 && avoid < 50) return 'secure';
+  if (insec >= 50 && avoid < 50) return 'preoccupied';
+  if (insec < 50) return 'dismissing';
+  return 'disorganized';
+}
+
+function showResults() {
+  const insec = score('insec');
+  const avoid = score('avoid');
+  const mine = styleFor(insec, avoid);
+
+  $('insec-score').textContent = insec;
+  $('avoid-score').textContent = avoid;
+  $('insec-bar').style.height = '0%';
+  $('avoid-bar').style.height = '0%';
+
+  document.querySelectorAll('#grid .quad').forEach(q => {
+    q.style.fill = 'rgba(17,181,228,0.06)';
+    q.dataset.mine = q.dataset.style === mine;
+  });
+  document.querySelectorAll('#grid .qlabel').forEach(t => t.classList.toggle('mine', t.dataset.style === mine));
+  $('dot').style.transform = `translate(${PLOT.x + PLOT.w / 2}px, ${PLOT.y + PLOT.h / 2}px)`;
+
+  show('results');
+  setTimeout(() => {
+    $('insec-bar').style.height = insec + '%';
+    $('avoid-bar').style.height = avoid + '%';
+    const x = PLOT.x + (avoid / 100) * PLOT.w;
+    const y = PLOT.y + ((100 - insec) / 100) * PLOT.h;
+    $('dot').style.transform = `translate(${x}px, ${y}px)`;
+    document.querySelectorAll('#grid .quad').forEach(q => {
+      if (q.dataset.mine === 'true') q.style.fill = 'rgba(17,181,228,0.28)';
+    });
+  }, 150);
+}
+
+// ── Wiring ──────────────────────────────────────────────────────────────
+$('start-btn').addEventListener('click', begin);
+$('back-btn').addEventListener('click', back);
+$('next-btn').addEventListener('click', next);
+$('reset-btn').addEventListener('click', () => show('start', true));
+
+// Keys 1–7 answer, arrows move between questions
+document.addEventListener('keydown', e => {
+  if (!$('question').classList.contains('active')) return;
+  if (e.key >= '1' && e.key <= '7') choose(Number(e.key));
+  else if (e.key === 'ArrowLeft') back();
+  else if (e.key === 'ArrowRight') next();
+});
+
+// ── Scale stage to fit the frame ────────────────────────────────────────
+function fit() {
+  const W = $('frame').clientWidth, H = $('frame').clientHeight;
+  const s = Math.min(W / 720, H / 450);
+  $('stage').style.transform = `translate(${(W - 720 * s) / 2}px, ${(H - 450 * s) / 2}px) scale(${s})`;
+}
+window.addEventListener('resize', fit);
+fit();
+</script>
+</body>
+</html>
